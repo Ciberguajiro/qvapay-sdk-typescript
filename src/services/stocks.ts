@@ -1,13 +1,13 @@
-import type { StockServiceInterface } from "../types/stock.interfaces";
+import type { StockServiceInterface, StockType, TradeResponse } from "../types/stock.interfaces";
 
 class StockService implements StockServiceInterface {
-  get_stocks(): string {
+  get_stocks(): StockType[] {
     throw new Error("Method not implemented.");
   }
-  buy_stock(): string {
+  buy_stock(symbol: string, amount: number): TradeResponse {
     throw new Error("Method not implemented.");
   }
-  sell_stock(): string {
+  sell_stock(symbol: string, quantity: number): TradeResponse {
     throw new Error("Method not implemented.");
   }
 }

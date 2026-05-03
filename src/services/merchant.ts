@@ -1,10 +1,10 @@
-import type { MerchantServiceInterface } from "../types/merchant.interfaces";
+import type { BalanceMerchant, InfoMerchant, MerchantServiceInterface } from "../types/merchant.interfaces";
 
 class MerchantService implements MerchantServiceInterface {
-  get_balance(): string {
+  get_balance(): BalanceMerchant {
     throw new Error("Method not implemented.");
   }
-  get_info(): string {
+  get_info(): InfoMerchant {
     throw new Error("Method not implemented.");
   }
 }
