@@ -1,7 +1,7 @@
 export interface StoreServiceInterface {
-  get_store_products(): string;
-  get_store_gift_card(): string;
-  buy_store_gift_card(): string;
+  get_store_products(): StoreResponse;
+  get_store_gift_card(): StoreGiftCardResponse;
+  buy_store_gift_card(data: StoreGiftCardRequest, uuid: string): StoreGiftCardResponse;
   get_store_phone_package(): string;
   buy_phone_package(): string;
 }

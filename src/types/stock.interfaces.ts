@@ -1,7 +1,7 @@
 export interface StockServiceInterface {
-  get_stocks(): string;
-  buy_stock(): string;
-  sell_stock(): string;
+  get_stocks(): StockType[];
+  buy_stock(symbol: string, amount: number): TradeResponse;
+  sell_stock(symbol: string, quantity: number): TradeResponse;
 }
 
 export type StockType = {
