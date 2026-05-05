@@ -1,8 +1,12 @@
 import { QvaPayValidationError } from "./errors.ts";
 import { AppService } from "./services/app.service.ts";
 import { AuthService } from "./services/auth.service.ts";
+import { CoinsService } from "./services/coins.service.ts";
 import { InvoicesService } from "./services/invoices.service.ts";
 import { MeService } from "./services/me.service.ts";
+import { P2PService } from "./services/p2p.service.ts";
+import { StocksService } from "./services/stocks.service.ts";
+import { StoreService } from "./services/store.service.ts";
 import { TransactionsService } from "./services/transactions.service.ts";
 import type { QvaPayConfig } from "./types.ts";
 import {
@@ -19,6 +23,10 @@ export class QvaPaySDK {
   readonly transactions: TransactionsService;
   readonly invoices: InvoicesService;
   readonly me: MeService;
+  readonly coins: CoinsService;
+  readonly p2p: P2PService;
+  readonly stocks: StocksService;
+  readonly store: StoreService;
 
   constructor(config: QvaPayConfig) {
     if (!config.appId) {
@@ -41,6 +49,10 @@ export class QvaPaySDK {
     this.transactions = new TransactionsService(appHttp);
     this.invoices = new InvoicesService(appHttp);
     this.me = new MeService(userHttp);
+    this.coins = new CoinsService(appHttp);
+    this.p2p = new P2PService(userHttp);
+    this.stocks = new StocksService(userHttp);
+    this.store = new StoreService(userHttp);
   }
 
   /** Returns the current Bearer token, or null if not authenticated. */

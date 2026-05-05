@@ -12,6 +12,21 @@ export type {
   RegisterParams,
   AuthResponse,
   CreateInvoiceParams,
+  RegisterConfirmationParams,
+  Coin,
+  P2POffer,
+  P2PUser,
+  P2PCoin,
+  CreateP2PParams,
+  Stock,
+  StockTrade,
+  GiftCard,
+  BuyGiftCardParams,
+  PhonePackage,
+  BuyPhonePackageParams,
+  BuyPhonePackageResult,
+  TransferParams,
+  TransferResult,
 } from "./src/types.ts";
 
 export {

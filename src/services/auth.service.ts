@@ -5,6 +5,7 @@ import type {
   LoginParams,
   RawAuthResponse,
   RawUser,
+  RegisterConfirmationParams,
   RegisterParams,
   User,
 } from "../types.ts";
@@ -80,5 +81,41 @@ export class AuthService {
 
   async logout(): Promise<void> {
     await this.userHttp.get("/logout");
+  }
+
+  async registerConfirmation(params: RegisterConfirmationParams): Promise<User> {
+    if (!params.uuid?.trim()) {
+      throw new QvaPayValidationError("uuid is required", "uuid");
+    }
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("email is required", "email");
+    }
+    if (!params.pin?.trim()) {
+      throw new QvaPayValidationError("pin is required", "pin");
+    }
+    const { data } = await this.plainHttp.post<{ message: string; user: RawUser }>(
+      "/register/confirmation",
+      { uuid: params.uuid, email: params.email, pin: params.pin }
+    );
+    return mapUser(data.user);
+  }
+
+  async checkAuth(): Promise<boolean> {
+    const { data } = await this.userHttp.get<{ success: string }>("/check_auth");
+    return !!data.success;
+  }
+
+  async requestPin(params: LoginParams): Promise<string> {
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("email is required", "email");
+    }
+    if (!params.password) {
+      throw new QvaPayValidationError("password is required", "password");
+    }
+    const { data } = await this.plainHttp.post<{ message: string }>("/request_pin", {
+      email: params.email,
+      password: params.password,
+    });
+    return data.message;
   }
 }
