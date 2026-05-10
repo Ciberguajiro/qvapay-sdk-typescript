@@ -2,6 +2,9 @@ import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors.ts";
 import type { CreateInvoiceParams, Invoice, RawInvoice } from "../types.ts";
 
+/**
+ * Mapper para convertir la factura cruda de la API al modelo Invoice.
+ */
 function mapInvoice(raw: RawInvoice): Invoice {
   return {
     uuid: raw.uuid,
@@ -15,19 +18,25 @@ function mapInvoice(raw: RawInvoice): Invoice {
   };
 }
 
+/**
+ * Servicio para gestionar facturas de pago.
+ */
 export class InvoicesService {
   constructor(private readonly http: AxiosInstance) {}
 
+  /**
+   * Crea una nueva factura de pago.
+   */
   async create(params: CreateInvoiceParams): Promise<Invoice> {
     if (params.amount <= 0) {
-      throw new QvaPayValidationError("amount must be greater than 0", "amount");
+      throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
     }
     if (!params.description?.trim()) {
-      throw new QvaPayValidationError("description is required", "description");
+      throw new QvaPayValidationError("La descripción es requerida", "description");
     }
     if (params.description.length > 300) {
       throw new QvaPayValidationError(
-        "description must be 300 characters or less",
+        "La descripción debe tener 300 caracteres o menos",
         "description"
       );
     }

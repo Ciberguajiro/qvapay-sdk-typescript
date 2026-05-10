@@ -6,10 +6,13 @@ import type {
   RawAuthResponse,
   RawUser,
   RegisterConfirmationParams,
-  RegisterParams,
+  RegisterParams, AuthSessionResponse,
   User,
 } from "../types.ts";
 
+/**
+ * Servicio para gestionar la autenticación de usuarios.
+ */
 export class AuthService {
   constructor(
     private readonly plainHttp: AxiosInstance,
@@ -17,12 +20,15 @@ export class AuthService {
     private readonly onLogin: (token: string) => void,
   ) {}
 
+  /**
+   * Inicia sesión con correo y contraseña.
+   */
   async login(params: LoginParams): Promise<AuthResponse> {
     if (!params.email?.trim()) {
-      throw new QvaPayValidationError("email is required", "email");
+      throw new QvaPayValidationError("El correo es requerido", "email");
     }
     if (!params.password) {
-      throw new QvaPayValidationError("password is required", "password");
+      throw new QvaPayValidationError("La contraseña es requerida", "password");
     }
     const { data } = await this.plainHttp.post<RawAuthResponse>("/login", {
       email: params.email,
@@ -33,19 +39,22 @@ export class AuthService {
     return result;
   }
 
+  /**
+   * Registra un nuevo usuario en QvaPay.
+   */
   async register(params: RegisterParams): Promise<AuthResponse> {
     if (!params.name?.trim()) {
-      throw new QvaPayValidationError("name is required", "name");
+      throw new QvaPayValidationError("El nombre es requerido", "name");
     }
     if (!params.email?.trim()) {
-      throw new QvaPayValidationError("email is required", "email");
+      throw new QvaPayValidationError("El correo es requerido", "email");
     }
     if (!params.password) {
-      throw new QvaPayValidationError("password is required", "password");
+      throw new QvaPayValidationError("La contraseña es requerida", "password");
     }
     if (!params.passwordConfirmation) {
       throw new QvaPayValidationError(
-        "passwordConfirmation is required",
+        "La confirmación de la contraseña es requerida",
         "passwordConfirmation",
       );
     }
@@ -62,21 +71,27 @@ export class AuthService {
     return result;
   }
 
+  /**
+   * Cierra la sesión del usuario actual.
+   */
   async logout(): Promise<void> {
     await this.userHttp.get("/logout");
   }
 
+  /**
+   * Confirma el registro de un usuario mediante un PIN enviado por correo.
+   */
   async registerConfirmation(
     params: RegisterConfirmationParams,
   ): Promise<User> {
     if (!params.uuid?.trim()) {
-      throw new QvaPayValidationError("uuid is required", "uuid");
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
     }
     if (!params.email?.trim()) {
-      throw new QvaPayValidationError("email is required", "email");
+      throw new QvaPayValidationError("El correo es requerido", "email");
     }
     if (!params.pin?.trim()) {
-      throw new QvaPayValidationError("pin is required", "pin");
+      throw new QvaPayValidationError("El PIN es requerido", "pin");
     }
     const { data } = await this.plainHttp.post<{
       message: string;
@@ -89,6 +104,9 @@ export class AuthService {
     return mapUser(data.user);
   }
 
+  /**
+   * Verifica si el token actual es válido.
+   */
   async checkAuth(): Promise<boolean> {
     const { data } = await this.userHttp.get<{ success: string }>(
       "/check_auth",
@@ -96,12 +114,15 @@ export class AuthService {
     return !!data.success;
   }
 
+  /**
+   * Solicita un nuevo PIN de seguridad para la cuenta.
+   */
   async requestPin(params: LoginParams): Promise<string> {
     if (!params.email?.trim()) {
-      throw new QvaPayValidationError("email is required", "email");
+      throw new QvaPayValidationError("El correo es requerido", "email");
     }
     if (!params.password) {
-      throw new QvaPayValidationError("password is required", "password");
+      throw new QvaPayValidationError("La contraseña es requerida", "password");
     }
     const { data } = await this.plainHttp.post<{ message: string }>(
       "/request_pin",
@@ -113,15 +134,21 @@ export class AuthService {
     return data.message;
   }
 
-  async get_session(): Promise<string> {
-    const { data } = await this.userHttp.get<{ message: string }>(
-      "/auth/sessions",
-    );
-    return data.message;
+  /**
+   * Obtiene la sesión actual del usuario.
+   */
+  async getSessions(): Promise<AuthSessionResponse> {
+    const { data } = await this.userHttp.get("/auth/sessions");
+    return data;
   }
 
-  async delete_session(id: string): Promise<string> {
-    const { data } = await this.userHttp.delete<{ message: string }>(`/auth/sessions/${id}`);
+  /**
+   * Elimina una sesión específica por su ID.
+   */
+  async deleteSession(id: string): Promise<string> {
+    const { data } = await this.userHttp.delete<{ message: string }>(
+      `/auth/sessions/${id}`,
+    );
     return data.message;
   }
 }

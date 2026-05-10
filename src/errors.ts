@@ -1,4 +1,6 @@
-/** Base class for all SDK errors. */
+/**
+ * Clase base para todos los errores del SDK.
+ */
 export class QvaPayError extends Error {
   constructor(message: string) {
     super(message);
@@ -7,7 +9,9 @@ export class QvaPayError extends Error {
   }
 }
 
-/** Network-level failure (no response received). */
+/**
+ * Fallo a nivel de red (no se recibió respuesta del servidor).
+ */
 export class QvaPayNetworkError extends QvaPayError {
   constructor(message: string) {
     super(message);
@@ -15,7 +19,9 @@ export class QvaPayNetworkError extends QvaPayError {
   }
 }
 
-/** 401 / 403 — invalid or missing credentials. */
+/**
+ * Error de autenticación (401 / 403) — credenciales inválidas o faltantes.
+ */
 export class QvaPayAuthError extends QvaPayError {
   readonly statusCode: number;
 
@@ -26,7 +32,9 @@ export class QvaPayAuthError extends QvaPayError {
   }
 }
 
-/** Any non-2xx HTTP response from the API (except auth errors). */
+/**
+ * Cualquier respuesta HTTP no exitosa (fuera del rango 2xx) de la API (excepto errores de auth).
+ */
 export class QvaPayApiError extends QvaPayError {
   readonly statusCode: number;
   readonly statusMessage: string | undefined;
@@ -39,9 +47,11 @@ export class QvaPayApiError extends QvaPayError {
   }
 }
 
-/** Invalid arguments passed to an SDK method before a request is made. */
+/**
+ * Argumentos inválidos pasados a un método del SDK antes de realizar la petición.
+ */
 export class QvaPayValidationError extends QvaPayError {
-  /** The field that failed validation, if applicable. */
+  /** El campo que falló la validación, si aplica. */
   readonly field: string | undefined;
 
   constructor(message: string, field?: string) {

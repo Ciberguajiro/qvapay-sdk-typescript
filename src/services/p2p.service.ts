@@ -10,6 +10,9 @@ import type {
   RawP2PUser,
 } from "../types.ts";
 
+/**
+ * Mapper para el usuario en una oferta P2P.
+ */
 function mapP2PUser(raw: RawP2PUser): P2PUser {
   return {
     uuid: raw.uuid,
@@ -22,10 +25,16 @@ function mapP2PUser(raw: RawP2PUser): P2PUser {
   };
 }
 
+/**
+ * Mapper para la moneda en una oferta P2P.
+ */
 function mapP2PCoin(raw: RawP2PCoin): P2PCoin {
   return { tick: raw.tic, name: raw.name, logo: raw.logo };
 }
 
+/**
+ * Mapper para una oferta P2P completa.
+ */
 function mapP2POffer(raw: RawP2POffer): P2POffer {
   return {
     uuid: raw.uuid,
@@ -45,26 +54,35 @@ function mapP2POffer(raw: RawP2POffer): P2POffer {
   };
 }
 
+/**
+ * Servicio para gestionar ofertas P2P (Compra/Venta).
+ */
 export class P2PService {
   constructor(private readonly http: AxiosInstance) {}
 
+  /**
+   * Lista las ofertas P2P actuales.
+   */
   async list(): Promise<P2POffer[]> {
     const { data } = await this.http.get<RawP2POffer[]>("/p2p");
     return data.map(mapP2POffer);
   }
 
+  /**
+   * Crea una nueva oferta P2P.
+   */
   async create(params: CreateP2PParams): Promise<P2POffer> {
     if (params.amount <= 0) {
-      throw new QvaPayValidationError("amount must be greater than 0", "amount");
+      throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
     }
     if (params.receive <= 0) {
-      throw new QvaPayValidationError("receive must be greater than 0", "receive");
+      throw new QvaPayValidationError("El monto a recibir debe ser mayor a 0", "receive");
     }
     if (!params.coin?.trim()) {
-      throw new QvaPayValidationError("coin is required", "coin");
+      throw new QvaPayValidationError("La moneda es requerida", "coin");
     }
     if (params.message && params.message.length > 79) {
-      throw new QvaPayValidationError("message must be 79 characters or less", "message");
+      throw new QvaPayValidationError("El mensaje debe tener 79 caracteres o menos", "message");
     }
     const { data } = await this.http.post<{ msg: string; p2p: RawP2POffer }>("/p2p", {
       type_1: params.type,
@@ -82,9 +100,12 @@ export class P2PService {
     return mapP2POffer(data.p2p);
   }
 
+  /**
+   * Aplica a una oferta P2P existente.
+   */
   async apply(uuid: string): Promise<P2POffer> {
     if (!uuid?.trim()) {
-      throw new QvaPayValidationError("uuid is required", "uuid");
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
     }
     const { data } = await this.http.post<RawP2POffer>(`/p2p/${uuid}/apply`);
     return mapP2POffer(data);
