@@ -6,6 +6,9 @@ import { QvaPayApiError, QvaPayAuthError, QvaPayNetworkError } from "./errors.ts
 const DEFAULT_BASE_URL = "https://qvapay.com/api/v1";
 const DEFAULT_TIMEOUT = 10_000;
 
+/**
+ * Adjunta un interceptor para manejar errores de la API de forma centralizada.
+ */
 function attachErrorInterceptor(instance: AxiosInstance): void {
   instance.interceptors.response.use(
     (res) => res,
@@ -14,7 +17,7 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
 
       if (!error.response) {
         throw new QvaPayNetworkError(
-          error.message || "Network error — no response received"
+          error.message || "Error de red — no se recibió respuesta"
         );
       }
 
@@ -22,7 +25,7 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
         status: number;
         data: Record<string, string> | undefined;
       };
-      const apiMessage: string = data?.message ?? data?.error ?? "API error";
+      const apiMessage: string = data?.message ?? data?.error ?? "Error de la API";
 
       if (status === 401 || status === 403) {
         throw new QvaPayAuthError(apiMessage, status);
@@ -33,7 +36,9 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
   );
 }
 
-/** Axios instance that injects app_id + app_secret on every request. */
+/**
+ * Instancia de Axios que inyecta app_id + app_secret en cada petición.
+ */
 export function createHttpClient(config: QvaPayConfig): AxiosInstance {
   const instance = axios.create({
     baseURL: config.baseUrl ?? DEFAULT_BASE_URL,
@@ -50,7 +55,9 @@ export function createHttpClient(config: QvaPayConfig): AxiosInstance {
   return instance;
 }
 
-/** Axios instance with no auth injection — used for public auth endpoints. */
+/**
+ * Instancia de Axios sin inyección de autenticación — usada para endpoints públicos.
+ */
 export function createPlainHttpClient(
   config: Pick<QvaPayConfig, "baseUrl" | "timeout">
 ): AxiosInstance {
@@ -64,7 +71,9 @@ export function createPlainHttpClient(
   return instance;
 }
 
-/** Axios instance that injects a Bearer token dynamically on every request. */
+/**
+ * Instancia de Axios que inyecta un token Bearer dinámicamente en cada petición.
+ */
 export function createUserHttpClient(
   config: Pick<QvaPayConfig, "baseUrl" | "timeout">,
   getToken: () => string | null
@@ -85,7 +94,9 @@ export function createUserHttpClient(
   return instance;
 }
 
-/** Generic paginated response mapper. */
+/**
+ * Mapper genérico para respuestas paginadas.
+ */
 export function mapPaginated<Raw, Out>(
   raw: { current_page: number; data: Raw[]; last_page: number; per_page: number; total: number },
   mapItem: (item: Raw) => Out

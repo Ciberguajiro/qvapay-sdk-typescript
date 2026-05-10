@@ -1,10 +1,27 @@
 {
-  "name": "typescript",
+  "name": "qvapay-sdk",
+  "version": "1.0.0",
+  "description": "SDK oficial comunitario para la API de QvaPay en TypeScript/JavaScript",
   "module": "index.ts",
   "type": "module",
-  "private": true,
+  "author": "QvaPay",
+  "license": "MIT",
+  "homepage": "https://github.com/qvapay/qvapay-ts-sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qvapay/qvapay-ts-sdk.git"
+  },
+  "keywords": [
+    "qvapay",
+    "sdk",
+    "payments",
+    "crypto",
+    "cuba",
+    "p2p",
+    "typescript"
+  ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.3.13"
   },
   "peerDependencies": {
     "typescript": "^5"

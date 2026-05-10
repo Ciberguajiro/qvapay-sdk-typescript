@@ -1,18 +1,26 @@
-// ─── Config ──────────────────────────────────────────────────────────────────
+// ─── Configuración ──────────────────────────────────────────────────────────
 
+/**
+ * Configuración para inicializar el SDK de QvaPay.
+ */
 export interface QvaPayConfig {
+  /** ID de la aplicación. */
   appId: string;
+  /** Secreto de la aplicación. */
   appSecret: string;
-  /** Pre-set Bearer token (e.g. from a previous login). */
+  /** Token Bearer preestablecido (opcional). */
   token?: string;
-  /** @default "https://qvapay.com/api/v1" */
+  /** URL base de la API. @default "https://qvapay.com/api/v1" */
   baseUrl?: string;
-  /** Request timeout in ms. @default 10000 */
+  /** Tiempo de espera de la petición en ms. @default 10000 */
   timeout?: number;
 }
 
-// ─── Domain models ───────────────────────────────────────────────────────────
+// ─── Modelos de Dominio ─────────────────────────────────────────────────────
 
+/**
+ * Información de una aplicación en QvaPay.
+ */
 export interface AppInfo {
   uuid: string;
   name: string;
@@ -23,6 +31,9 @@ export interface AppInfo {
   userId: number;
 }
 
+/**
+ * Datos de un usuario de QvaPay.
+ */
 export interface User {
   uuid: string;
   name: string;
@@ -34,8 +45,14 @@ export interface User {
   updatedAt: string;
 }
 
+/**
+ * Estados posibles de una transacción.
+ */
 export type TransactionStatus = "pending" | "paid" | "cancelled" | "refunded";
 
+/**
+ * Representa una transacción en QvaPay.
+ */
 export interface Transaction {
   uuid: string;
   amount: string;
@@ -49,6 +66,9 @@ export interface Transaction {
   app: AppInfo;
 }
 
+/**
+ * Representa una factura generada.
+ */
 export interface Invoice {
   uuid: string;
   amount: string;
@@ -60,6 +80,9 @@ export interface Invoice {
   updatedAt: string;
 }
 
+/**
+ * Respuesta genérica paginada.
+ */
 export interface PaginatedResponse<T> {
   currentPage: number;
   data: T[];
@@ -68,7 +91,7 @@ export interface PaginatedResponse<T> {
   total: number;
 }
 
-// ─── Request params ──────────────────────────────────────────────────────────
+// ─── Parámetros de Petición ─────────────────────────────────────────────────
 
 export interface LoginParams {
   email: string;
@@ -89,30 +112,18 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface AuthSessionResponse {
-  sessions: {
-    id: string;
-    name: string;
-    ip_address: string;
-    user_agent: string;
-    created_at: string;
-    expires_at: string;
-  }[];
-  currentSessionId: string;
-}
-
 export interface CreateInvoiceParams {
-  /** Amount in USD, two decimals. Must be > 0. */
+  /** Monto en USD, dos decimales. Debe ser > 0. */
   amount: number;
-  /** Max 300 characters. */
+  /** Máximo 300 caracteres. */
   description: string;
-  /** Optional reference ID from your own system. */
+  /** ID de referencia opcional de su propio sistema. */
   remoteId?: string;
-  /** Signed URLs expire after 30 minutes. */
+  /** Las URLs firmadas expiran después de 30 minutos. */
   signed?: boolean;
 }
 
-// ─── Raw API shapes (internal) ───────────────────────────────────────────────
+// ─── Formas de la API (Internas) ─────────────────────────────────────────────
 
 export interface RawAppInfo {
   uuid: string;
@@ -172,7 +183,7 @@ export interface RawPaginatedResponse<T> {
   total: number;
 }
 
-// ─── Auth extras ─────────────────────────────────────────────────────────────
+// ─── Extras de Autenticación ───────────────────────────────────────────────
 
 export interface RegisterConfirmationParams {
   uuid: string;
@@ -180,7 +191,7 @@ export interface RegisterConfirmationParams {
   pin: string;
 }
 
-// ─── Coins ───────────────────────────────────────────────────────────────────
+// ─── Criptomonedas ──────────────────────────────────────────────────────────
 
 export interface Coin {
   id: string;
@@ -269,26 +280,26 @@ export interface RawP2POffer {
 }
 
 export interface CreateP2PParams {
-  /** "buy" or "sell" */
+  /** "buy" o "sell" */
   type: "buy" | "sell";
-  /** Coin tick (e.g. "BANK_CUP") or numeric ID */
+  /** Siglas de la moneda (ej. "BANK_CUP") */
   coin: string;
-  /** Amount in QUSD (0.1–100,000) */
+  /** Monto en QUSD (0.1–100,000) */
   amount: number;
-  /** Amount to receive in the selected coin (0.1–1,000,000) */
+  /** Monto a recibir en la moneda seleccionada (0.1–1,000,000) */
   receive: number;
-  /** Payment details according to coin fields */
+  /** Detalles del pago según los campos de la moneda */
   details: Array<{ name: string; value: string }>;
   onlyKyc?: boolean;
   onlyVip?: boolean;
   isPrivate?: boolean;
-  /** Public message (max 79 chars) */
+  /** Mensaje público (máx. 79 caracteres) */
   message?: string;
   webhook?: string;
   tags?: string[];
 }
 
-// ─── Stocks ──────────────────────────────────────────────────────────────────
+// ─── Acciones / Stocks ──────────────────────────────────────────────────────
 
 export interface Stock {
   symbol: string;
@@ -340,7 +351,7 @@ export interface RawStockTrade {
   extra: string;
 }
 
-// ─── Store ───────────────────────────────────────────────────────────────────
+// ─── Tienda ──────────────────────────────────────────────────────────────────
 
 export interface GiftCard {
   id: number;
@@ -426,14 +437,14 @@ export interface RawBuyPhonePackageResult {
   buyedService: string;
 }
 
-// ─── Transfer ─────────────────────────────────────────────────────────────────
+// ─── Transferencia ─────────────────────────────────────────────────────────
 
 export interface TransferParams {
-  /** Amount in USD, two decimals. Must be > 0. */
+  /** Monto en USD, dos decimales. Debe ser > 0. */
   amount: number;
-  /** Recipient username or UUID */
+  /** Nombre de usuario o UUID del destinatario */
   to: string;
-  /** User PIN */
+  /** PIN del usuario */
   pin: string;
   description?: string;
 }
@@ -444,22 +455,24 @@ export interface TransferResult {
   transaction: string;
 }
 
-export interface InvoiceParams {
+// ─── V2 Invoices ─────────────────────────────────────────────────────────────
+
+export interface InvoiceParamsV2 {
   amount: number;
   description: string;
   remote_id: string;
-  webhook: string;
-  products: Product_Invoice[];
-  expire_at: string;
+  webhook?: string;
+  products?: ProductInvoiceV2[];
+  expire_at?: string;
 }
 
-interface Product_Invoice {
+export interface ProductInvoiceV2 {
   name: string;
   price: number;
   quantity: number;
 }
 
-export interface InvoiceResult {
+export interface InvoiceResultV2 {
   app_id: string;
   amount: number;
   description: string;
@@ -467,4 +480,16 @@ export interface InvoiceResult {
   transaction_uuid: string;
   expire_at: string;
   url: string;
+}
+
+export interface AuthSessionResponse {
+  sessions: {
+    id: string;
+    name: string;
+    ip_address: string;
+    user_agent: string;
+    created_at: string;
+    expires_at: string;
+  }[];
+  currentSessionId: string;
 }

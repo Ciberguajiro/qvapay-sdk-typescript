@@ -10,7 +10,7 @@ export type {
   PaginatedResponse,
   LoginParams,
   RegisterParams,
-  AuthResponse,
+  AuthResponse, AuthSessionResponse,
   CreateInvoiceParams,
   RegisterConfirmationParams,
   Coin,
@@ -27,6 +27,9 @@ export type {
   BuyPhonePackageResult,
   TransferParams,
   TransferResult,
+  InvoiceParamsV2,
+  InvoiceResultV2,
+  ProductInvoiceV2,
 } from "./src/types.ts";
 
 export {
