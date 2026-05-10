@@ -1,5 +1,5 @@
 {
-  "name": "qvapay-sdk",
+  "name": "sdk-qvapay",
   "version": "0.0.3",
   "description": "SDK oficial comunitario para la API de QvaPay en TypeScript/JavaScript",
   "module": "index.ts",
