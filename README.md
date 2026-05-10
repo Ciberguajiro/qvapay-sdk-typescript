@@ -19,13 +19,13 @@ Para instalar el SDK en tu proyecto:
 
 ```bash
 # Con Bun (Recomendado)
-bun add qvapay-sdk
+bun add sdk-qvapay
 
 # Con NPM
-npm install qvapay-sdk
+npm install sdk-qvapay
 
 # Con Yarn
-yarn add qvapay-sdk
+yarn add sdk-qvapay
 ```
 
 ## 🛠️ Configuración Inicial
@@ -33,7 +33,7 @@ yarn add qvapay-sdk
 Necesitarás tu `app_id` y `app_secret`, los cuales puedes obtener creando una aplicación en el panel de desarrollador de QvaPay.
 
 ```typescript
-import { QvaPaySDK } from "qvapay-sdk";
+import { QvaPaySDK } from "sdk-qvapay";
 
 const qvapay = new QvaPaySDK({
   appId: "tu_app_id",
