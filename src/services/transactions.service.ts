@@ -1,5 +1,5 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
+import { QvaPayValidationError } from "../errors";
 import type {
   PaginatedResponse,
   RawPaginatedResponse,
@@ -7,9 +7,9 @@ import type {
   Transaction,
   TransferParams,
   TransferResult,
-} from "../types.ts";
-import { mapPaginated } from "../utils.ts";
-import { mapAppInfo } from "./app.service.ts";
+} from "../types";
+import { mapPaginated } from "../utils";
+import { mapAppInfo } from "./app.service";
 
 /**
  * Servicio para gestionar transacciones y transferencias.

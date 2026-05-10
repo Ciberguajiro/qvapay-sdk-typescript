@@ -1,5 +1,5 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
+import { QvaPayValidationError } from "../errors";
 import type {
   CreateP2PParams,
   P2PCoin,
@@ -8,7 +8,7 @@ import type {
   RawP2PCoin,
   RawP2POffer,
   RawP2PUser,
-} from "../types.ts";
+} from "../types";
 
 /**
  * Mapper para el usuario en una oferta P2P.

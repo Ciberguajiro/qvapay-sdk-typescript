@@ -12,26 +12,24 @@
    ```
 4. **Crea una rama**: Utiliza un nombre descriptivo, como `fix/error-en-login` o `feature/nuevo-servicio`.
 5. **Escribe tu código**: Asegúrate de seguir las guías de estilo y de añadir comentarios en español si es necesario.
-6. **Verifica los tipos**:
+6. **Verifica los cambios**:
    ```bash
-   bun x tsc --noEmit
+   bun run lint   # Verifica tipos
+   bun run build  # Verifica la compilación
    ```
 7. **Haz commit de tus cambios**: Utiliza mensajes claros y concisos.
 8. **Envía un Pull Request**: Describe detalladamente tus cambios y qué problemas solucionan.
 
 ## Guías de Estilo
 
-- Usamos **TypeScript** para todo el código fuente.
+- Usamos **TypeScript** para todo el código fuente en la carpeta `src`.
 - Los nombres de variables y funciones deben estar en **camelCase**.
-- Los comentarios técnicos y la documentación deben estar preferiblemente en **español**.
-- Intentamos mantener una cobertura de tipos del 100%.
+- Los comentarios técnicos y la documentación (JSDoc) deben estar en **español**.
+- El punto de entrada principal es `src/index.ts`.
+- No edites los archivos en la carpeta `dist`, ya que se generan automáticamente.
 
-## Reporte de Errores
+## Publicación
 
-Si encuentras un error, por favor utiliza la plantilla de "Reporte de Error" en la sección de Issues de GitHub, proporcionando tantos detalles como sea posible para poder reproducirlo.
-
-## Preguntas
-
-Si tienes dudas, puedes abrir un Issue de tipo "Pregunta" o contactarnos a través de los canales oficiales de QvaPay.
+La publicación a NPM se realiza manualmente mediante GitHub Actions (Workflow Dispatch) por los mantenedores.
 
 ¡Gracias por tu apoyo!
