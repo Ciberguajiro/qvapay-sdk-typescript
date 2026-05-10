@@ -19,4 +19,9 @@ export class CoinsService {
     const { data } = await this.http.get<RawCoin[]>("/coins");
     return data.map(mapCoin);
   }
+
+  async details(id: string): Promise<Coin[]> {
+    const { data } = await this.http.get<RawCoin[]>(`/coins/${id}`);
+    return data.map(mapCoin);
+  }
 }

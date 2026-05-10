@@ -2,34 +2,6 @@ import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors.ts";
 import type { RawStock, RawStockTrade, Stock, StockTrade } from "../types.ts";
 
-function mapStock(raw: RawStock): Stock {
-  return {
-    symbol: raw.symbol,
-    name: raw.name,
-    icon: raw.icon,
-    iconStyle: raw.icon_style,
-    image: raw.image,
-    price: raw.price,
-    change: raw.change,
-    changeDollar: raw.change_dollar,
-    volume: raw.volume,
-    timestamp: raw.timestamp,
-  };
-}
-
-function mapStockTrade(raw: RawStockTrade): StockTrade {
-  return {
-    tradeUuid: raw.trade_uuid,
-    transactionUuid: raw.transaction_uuid,
-    symbol: raw.symbol,
-    quantity: raw.quantity,
-    effectivePrice: raw.effective_price,
-    marketPrice: raw.market_price,
-    spreadPercent: raw.spread_percent,
-    fee: raw.fee,
-    extra: raw.extra,
-  };
-}
 
 export class StocksService {
   constructor(private readonly http: AxiosInstance) {}
@@ -60,4 +32,34 @@ export class StocksService {
     const { data } = await this.http.post<RawStockTrade>(`/stocks/${symbol}/sell`, { quantity });
     return mapStockTrade(data);
   }
+}
+
+
+function mapStock(raw: RawStock): Stock {
+  return {
+    symbol: raw.symbol,
+    name: raw.name,
+    icon: raw.icon,
+    iconStyle: raw.icon_style,
+    image: raw.image,
+    price: raw.price,
+    change: raw.change,
+    changeDollar: raw.change_dollar,
+    volume: raw.volume,
+    timestamp: raw.timestamp,
+  };
+}
+
+function mapStockTrade(raw: RawStockTrade): StockTrade {
+  return {
+    tradeUuid: raw.trade_uuid,
+    transactionUuid: raw.transaction_uuid,
+    symbol: raw.symbol,
+    quantity: raw.quantity,
+    effectivePrice: raw.effective_price,
+    marketPrice: raw.market_price,
+    spreadPercent: raw.spread_percent,
+    fee: raw.fee,
+    extra: raw.extra,
+  };
 }

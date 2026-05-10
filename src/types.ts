@@ -89,6 +89,18 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface AuthSessionResponse {
+  sessions: {
+    id: string;
+    name: string;
+    ip_address: string;
+    user_agent: string;
+    created_at: string;
+    expires_at: string;
+  }[];
+  currentSessionId: string;
+}
+
 export interface CreateInvoiceParams {
   /** Amount in USD, two decimals. Must be > 0. */
   amount: number;
@@ -430,4 +442,29 @@ export interface TransferResult {
   success: boolean;
   message: string;
   transaction: string;
+}
+
+export interface InvoiceParams {
+  amount: number;
+  description: string;
+  remote_id: string;
+  webhook: string;
+  products: Product_Invoice[];
+  expire_at: string;
+}
+
+interface Product_Invoice {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface InvoiceResult {
+  app_id: string;
+  amount: number;
+  description: string;
+  remote_id: string;
+  transaction_uuid: string;
+  expire_at: string;
+  url: string;
 }
