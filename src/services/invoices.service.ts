@@ -1,6 +1,6 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
-import type { CreateInvoiceParams, Invoice, RawInvoice } from "../types.ts";
+import { QvaPayValidationError } from "../errors";
+import type { CreateInvoiceParams, Invoice, RawInvoice } from "../types";
 
 /**
  * Mapper para convertir la factura cruda de la API al modelo Invoice.

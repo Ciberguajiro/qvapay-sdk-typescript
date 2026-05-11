@@ -1,5 +1,5 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
+import { QvaPayValidationError } from "../errors";
 import type {
   AuthResponse,
   LoginParams,
@@ -8,10 +8,13 @@ import type {
   RegisterConfirmationParams,
   RegisterParams, AuthSessionResponse,
   User,
-} from "../types.ts";
+} from "../types";
 
 /**
  * Servicio para gestionar la autenticación de usuarios.
+ *
+ * Este servicio permite el flujo completo de identidad: login, registro,
+ * confirmación y gestión de sesiones.
  */
 export class AuthService {
   constructor(
@@ -22,6 +25,10 @@ export class AuthService {
 
   /**
    * Inicia sesión con correo y contraseña.
+   *
+   * @param params - Credenciales del usuario.
+   * @returns Datos de autenticación y perfil del usuario.
+   * @throws {QvaPayValidationError} Si faltan campos requeridos.
    */
   async login(params: LoginParams): Promise<AuthResponse> {
     if (!params.email?.trim()) {
@@ -41,6 +48,10 @@ export class AuthService {
 
   /**
    * Registra un nuevo usuario en QvaPay.
+   *
+   * @param params - Datos del nuevo usuario.
+   * @returns Datos de autenticación.
+   * @throws {QvaPayValidationError} Si faltan campos requeridos.
    */
   async register(params: RegisterParams): Promise<AuthResponse> {
     if (!params.name?.trim()) {
@@ -80,6 +91,10 @@ export class AuthService {
 
   /**
    * Confirma el registro de un usuario mediante un PIN enviado por correo.
+   *
+   * @param params - Datos de confirmación.
+   * @returns El perfil del usuario confirmado.
+   * @throws {QvaPayValidationError} Si faltan campos requeridos.
    */
   async registerConfirmation(
     params: RegisterConfirmationParams,
@@ -135,7 +150,7 @@ export class AuthService {
   }
 
   /**
-   * Obtiene la sesión actual del usuario.
+   * Obtiene la lista de sesiones activas del usuario.
    */
   async getSessions(): Promise<AuthSessionResponse> {
     const { data } = await this.userHttp.get("/auth/sessions");
@@ -144,6 +159,9 @@ export class AuthService {
 
   /**
    * Elimina una sesión específica por su ID.
+   *
+   * @param id - El identificador de la sesión.
+   * @returns Mensaje de confirmación.
    */
   async deleteSession(id: string): Promise<string> {
     const { data } = await this.userHttp.delete<{ message: string }>(

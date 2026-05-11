@@ -1,6 +1,6 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
-import type { RawStock, RawStockTrade, Stock, StockTrade } from "../types.ts";
+import { QvaPayValidationError } from "../errors";
+import type { RawStock, RawStockTrade, Stock, StockTrade } from "../types";
 
 /**
  * Servicio para gestionar la compra y venta de acciones (Stocks).

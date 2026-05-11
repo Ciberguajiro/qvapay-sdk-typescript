@@ -1,45 +1,88 @@
-import { QvaPayValidationError } from "./errors.ts";
-import { AppService } from "./services/app.service.ts";
-import { AuthService } from "./services/auth.service.ts";
-import { CoinsService } from "./services/coins.service.ts";
-import { InvoicesService } from "./services/invoices.service.ts";
-import { MeService } from "./services/me.service.ts";
-import { P2PService } from "./services/p2p.service.ts";
-import { StocksService } from "./services/stocks.service.ts";
-import { StoreService } from "./services/store.service.ts";
-import { TransactionsService } from "./services/transactions.service.ts";
-import type { QvaPayConfig } from "./types.ts";
+import { QvaPayValidationError } from "./errors";
+import { AppService } from "./services/app.service";
+import { AuthService } from "./services/auth.service";
+import { CoinsService } from "./services/coins.service";
+import { InvoicesService } from "./services/invoices.service";
+import { MeService } from "./services/me.service";
+import { P2PService } from "./services/p2p.service";
+import { StocksService } from "./services/stocks.service";
+import { StoreService } from "./services/store.service";
+import { TransactionsService } from "./services/transactions.service";
+import type { QvaPayConfig } from "./types";
 import {
   createHttpClient,
   createPlainHttpClient,
   createUserHttpClient,
-} from "./utils.ts";
+} from "./utils";
 
 /**
  * El punto de entrada principal para el SDK de QvaPay.
+ *
+ * Proporciona acceso a todos los servicios de la API de QvaPay de forma organizada.
  */
 export class QvaPaySDK {
   private _token: string | null;
 
-  /** Servicio para operaciones de autenticación. */
+  /**
+   * Servicio para operaciones de autenticación.
+   * Permite el login, registro y gestión de sesiones de usuario.
+   */
   readonly auth: AuthService;
-  /** Servicio para operaciones del comercio/aplicación (Merchant). */
+
+  /**
+   * Servicio para operaciones del comercio/aplicación (Merchant).
+   * Permite obtener información de la app, balance y crear facturas v2.
+   */
   readonly app: AppService;
-  /** Servicio para gestionar transacciones. */
+
+  /**
+   * Servicio para gestionar transacciones.
+   * Permite listar y obtener detalles de transacciones del comercio.
+   */
   readonly transactions: TransactionsService;
-  /** Servicio para gestionar facturas (v1). */
+
+  /**
+   * Servicio para gestionar facturas (v1).
+   * Permite crear y gestionar facturas tradicionales.
+   */
   readonly invoices: InvoicesService;
-  /** Servicio para gestionar el perfil del usuario autenticado. */
+
+  /**
+   * Servicio para gestionar el perfil del usuario autenticado.
+   * Requiere que el usuario haya iniciado sesión.
+   */
   readonly me: MeService;
-  /** Servicio para obtener información de monedas. */
+
+  /**
+   * Servicio para obtener información de monedas.
+   * Lista las criptomonedas y monedas soportadas por QvaPay.
+   */
   readonly coins: CoinsService;
-  /** Servicio para el mercado P2P. */
+
+  /**
+   * Servicio para el mercado P2P.
+   * Permite interactuar con ofertas de compra y venta entre usuarios.
+   */
   readonly p2p: P2PService;
-  /** Servicio para la compra/venta de acciones (Stocks). */
+
+  /**
+   * Servicio para la compra/venta de acciones (Stocks).
+   * Permite gestionar inversiones dentro de la plataforma.
+   */
   readonly stocks: StocksService;
-  /** Servicio para la tienda y servicios adicionales. */
+
+  /**
+   * Servicio para la tienda y servicios adicionales.
+   * Permite la compra de tarjetas de regalo, paquetes de telefonía, etc.
+   */
   readonly store: StoreService;
 
+  /**
+   * Crea una nueva instancia del SDK de QvaPay.
+   *
+   * @param config - Configuración necesaria para inicializar el SDK.
+   * @throws {QvaPayValidationError} Si falta el appId o appSecret.
+   */
   constructor(config: QvaPayConfig) {
     if (!config.appId) {
       throw new QvaPayValidationError("El appId es requerido", "appId");
@@ -67,7 +110,9 @@ export class QvaPaySDK {
     this.store = new StoreService(userHttp);
   }
 
-  /** Retorna el token Bearer actual, o null si no está autenticado. */
+  /**
+   * Retorna el token Bearer actual del usuario, o null si no está autenticado.
+   */
   get token(): string | null {
     return this._token;
   }

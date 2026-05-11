@@ -1,5 +1,5 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
+import { QvaPayValidationError } from "../errors";
 import type {
   BuyGiftCardParams,
   BuyPhonePackageParams,
@@ -9,7 +9,7 @@ import type {
   RawBuyPhonePackageResult,
   RawGiftCard,
   RawPhonePackage,
-} from "../types.ts";
+} from "../types";
 
 /**
  * Mapper para tarjetas de regalo (Gift Cards).

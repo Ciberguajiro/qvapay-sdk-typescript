@@ -1,6 +1,6 @@
 import type { AxiosInstance } from "axios";
-import { QvaPayValidationError } from "../errors.ts";
-import type { RawUser, TransferParams, TransferResult, User } from "../types.ts";
+import { QvaPayValidationError } from "../errors";
+import type { RawUser, TransferParams, TransferResult, User } from "../types";
 
 /**
  * Mapper para convertir el usuario crudo de la API al modelo User.
