@@ -17,7 +17,7 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
 
       if (!error.response) {
         throw new QvaPayNetworkError(
-          error.message || "Error de red — no se recibió respuesta"
+          error.message || "Error de red — no se recibió respuesta",
         );
       }
 
@@ -25,14 +25,15 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
         status: number;
         data: Record<string, string> | undefined;
       };
-      const apiMessage: string = data?.message ?? data?.error ?? "Error de la API";
+      const apiMessage: string =
+        data?.message ?? data?.error ?? "Error de la API";
 
       if (status === 401 || status === 403) {
         throw new QvaPayAuthError(apiMessage, status);
       }
 
       throw new QvaPayApiError(apiMessage, status, data?.status_message);
-    }
+    },
   );
 }
 
@@ -43,11 +44,17 @@ export function createHttpClient(config: QvaPayConfig): AxiosInstance {
   const instance = axios.create({
     baseURL: config.baseUrl ?? DEFAULT_BASE_URL,
     timeout: config.timeout ?? DEFAULT_TIMEOUT,
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "app-id": "1b01ce89-2a52-4f68-bd1d-2cde2d325d05",
+      "app-secret": "c18b934eb74d1c1396364f4eef935ddefc77e533e7744d6a17",
+    },
   });
 
   instance.interceptors.request.use((req) => {
-    req.params = { app_id: config.appId, app_secret: config.appSecret, ...req.params };
+    console.log(req.baseURL)
+    console.log(req.url)
     return req;
   });
 
@@ -59,7 +66,7 @@ export function createHttpClient(config: QvaPayConfig): AxiosInstance {
  * Instancia de Axios sin inyección de autenticación — usada para endpoints públicos.
  */
 export function createPlainHttpClient(
-  config: Pick<QvaPayConfig, "baseUrl" | "timeout">
+  config: Pick<QvaPayConfig, "baseUrl" | "timeout">,
 ): AxiosInstance {
   const instance = axios.create({
     baseURL: config.baseUrl ?? DEFAULT_BASE_URL,
@@ -76,7 +83,7 @@ export function createPlainHttpClient(
  */
 export function createUserHttpClient(
   config: Pick<QvaPayConfig, "baseUrl" | "timeout">,
-  getToken: () => string | null
+  getToken: () => string | null,
 ): AxiosInstance {
   const instance = axios.create({
     baseURL: config.baseUrl ?? DEFAULT_BASE_URL,
@@ -98,9 +105,21 @@ export function createUserHttpClient(
  * Mapper genérico para respuestas paginadas.
  */
 export function mapPaginated<Raw, Out>(
-  raw: { current_page: number; data: Raw[]; last_page: number; per_page: number; total: number },
-  mapItem: (item: Raw) => Out
-): { currentPage: number; data: Out[]; lastPage: number; perPage: number; total: number } {
+  raw: {
+    current_page: number;
+    data: Raw[];
+    last_page: number;
+    per_page: number;
+    total: number;
+  },
+  mapItem: (item: Raw) => Out,
+): {
+  currentPage: number;
+  data: Out[];
+  lastPage: number;
+  perPage: number;
+  total: number;
+} {
   return {
     currentPage: raw.current_page,
     data: raw.data.map(mapItem),

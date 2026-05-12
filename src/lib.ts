@@ -103,11 +103,11 @@ export class QvaPaySDK {
     this.app = new AppService(appHttp);
     this.transactions = new TransactionsService(appHttp);
     this.invoices = new InvoicesService(appHttp);
-    this.me = new MeService(userHttp);
+    this.me = new MeService(appHttp);
     this.coins = new CoinsService(appHttp);
-    this.p2p = new P2PService(userHttp);
-    this.stocks = new StocksService(userHttp);
-    this.store = new StoreService(userHttp);
+    this.p2p = new P2PService(appHttp);
+    this.stocks = new StocksService(appHttp);
+    this.store = new StoreService(appHttp);
   }
 
   /**

@@ -45,8 +45,8 @@ export class AppService {
    * @returns El balance como un número de punto flotante.
    */
   async getBalance(): Promise<number> {
-    const { data } = await this.http.post<{ balance: string }>("/v2/balance");
-    return parseFloat(data.balance);
+    const { data } = await this.http.post<string>("/v2/balance");
+    return parseFloat(data);
   }
 
   /**

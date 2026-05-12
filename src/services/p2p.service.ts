@@ -63,9 +63,9 @@ export class P2PService {
   /**
    * Lista las ofertas P2P actuales.
    */
-  async list(): Promise<P2POffer[]> {
-    const { data } = await this.http.get<RawP2POffer[]>("/p2p");
-    return data.map(mapP2POffer);
+  async list() {
+    const { data } = await this.http.get<{current_page: number;per_page: number;total: number;data: RawP2POffer[];}>("/p2p");
+    return data;
   }
 
   /**
@@ -76,27 +76,36 @@ export class P2PService {
       throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
     }
     if (params.receive <= 0) {
-      throw new QvaPayValidationError("El monto a recibir debe ser mayor a 0", "receive");
+      throw new QvaPayValidationError(
+        "El monto a recibir debe ser mayor a 0",
+        "receive",
+      );
     }
     if (!params.coin?.trim()) {
       throw new QvaPayValidationError("La moneda es requerida", "coin");
     }
     if (params.message && params.message.length > 79) {
-      throw new QvaPayValidationError("El mensaje debe tener 79 caracteres o menos", "message");
+      throw new QvaPayValidationError(
+        "El mensaje debe tener 79 caracteres o menos",
+        "message",
+      );
     }
-    const { data } = await this.http.post<{ msg: string; p2p: RawP2POffer }>("/p2p", {
-      type_1: params.type,
-      coin: params.coin,
-      amount: params.amount,
-      receive: params.receive,
-      details: params.details,
-      only_kyc: params.onlyKyc ? 1 : 0,
-      only_vip: params.onlyVip ? 1 : 0,
-      private: params.isPrivate ? 1 : 0,
-      ...(params.message !== undefined && { message: params.message }),
-      ...(params.webhook !== undefined && { webhook: params.webhook }),
-      ...(params.tags !== undefined && { tags: params.tags }),
-    });
+    const { data } = await this.http.post<{ msg: string; p2p: RawP2POffer }>(
+      "/p2p",
+      {
+        type_1: params.type,
+        coin: params.coin,
+        amount: params.amount,
+        receive: params.receive,
+        details: params.details,
+        only_kyc: params.onlyKyc ? 1 : 0,
+        only_vip: params.onlyVip ? 1 : 0,
+        private: params.isPrivate ? 1 : 0,
+        ...(params.message !== undefined && { message: params.message }),
+        ...(params.webhook !== undefined && { webhook: params.webhook }),
+        ...(params.tags !== undefined && { tags: params.tags }),
+      },
+    );
     return mapP2POffer(data.p2p);
   }
 
