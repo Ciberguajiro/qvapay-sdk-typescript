@@ -10,7 +10,7 @@ export interface QvaPayConfig {
   appSecret: string;
   /** Token Bearer preestablecido (opcional). */
   token?: string;
-  /** URL base de la API. @default "https://qvapay.com/api/v1" */
+  /** URL base de la API. @default "https://api.qvapay.com" */
   baseUrl?: string;
   /** Tiempo de espera de la petición en ms. @default 10000 */
   timeout?: number;

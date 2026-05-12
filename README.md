@@ -3,7 +3,7 @@
 [![CI](https://github.com/qvapay/qvapay-ts-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/qvapay/qvapay-ts-sdk/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-SDK oficial (comunitario) para interactuar con la API de [QvaPay](https://qvapay.com), diseñado para ser utilizado con Bun, Node.js o en el navegador.
+SDK oficial (comunitario) para interactuar con la API de [QvaPay](https://api.qvapay.com), diseñado para ser utilizado con Bun, Node.js o en el navegador.
 
 ## 🚀 Características
 
