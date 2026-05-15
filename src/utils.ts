@@ -3,7 +3,7 @@ import type { AxiosInstance } from "axios";
 import type { QvaPayConfig } from "./types";
 import { QvaPayApiError, QvaPayAuthError, QvaPayNetworkError } from "./errors";
 
-const DEFAULT_BASE_URL = "https://api.qvapay.com";
+export const DEFAULT_BASE_URL = "https://api.qvapay.com";
 const DEFAULT_TIMEOUT = 10_000;
 
 /**
