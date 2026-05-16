@@ -240,7 +240,7 @@ export interface P2PCoin {
 }
 
 export interface RawP2PCoin {
-  tic: string;
+  tick: string;
   name: string;
   logo: string;
 }

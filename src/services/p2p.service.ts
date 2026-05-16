@@ -29,7 +29,7 @@ function mapP2PUser(raw: RawP2PUser): P2PUser {
  * Mapper para la moneda en una oferta P2P.
  */
 function mapP2PCoin(raw: RawP2PCoin): P2PCoin {
-  return { tick: raw.tic, name: raw.name, logo: raw.logo };
+  return { tick: raw.tick, name: raw.name, logo: raw.logo };
 }
 
 /**

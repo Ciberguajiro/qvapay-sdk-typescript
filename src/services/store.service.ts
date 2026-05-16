@@ -10,7 +10,6 @@ import type {
   RawGiftCard,
   RawPhonePackage,
 } from "../types";
-import { DEFAULT_BASE_URL } from "../utils";
 
 /**
  * Mapper para tarjetas de regalo (Gift Cards).
@@ -76,9 +75,9 @@ export class StoreService {
    * Obtiene la lista de paquetes de telefonía (recargas) disponibles.
    */
   async getPhonePackages(): Promise<PhonePackage[]> {
-    const data = await (
-      await fetch(`${DEFAULT_BASE_URL}/store/phone_package`)
-    ).json();
+    const { data } = await this.http.get<{ phone_packages: RawPhonePackage[] }>(
+      "/store/phone_package",
+    );
     return data.phone_packages.map(mapPhonePackage);
   }
 

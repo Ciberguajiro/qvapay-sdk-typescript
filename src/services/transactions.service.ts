@@ -48,9 +48,23 @@ export class TransactionsService {
    * Realiza una transferencia de saldo.
    */
   async transfer(props: TransferParams): Promise<TransferResult> {
+    if (props.amount <= 0) {
+      throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
+    }
+    if (!props.to?.trim()) {
+      throw new QvaPayValidationError("El destinatario es requerido", "to");
+    }
+    if (!props.pin?.trim()) {
+      throw new QvaPayValidationError("El PIN es requerido", "pin");
+    }
     const { data } = await this.http.post<TransferResult>(
       `/transaction/transfer`,
-      props,
+      {
+        amount: props.amount.toFixed(2),
+        to: props.to,
+        pin: props.pin,
+        ...(props.description !== undefined && { description: props.description }),
+      },
     );
     return data;
   }
