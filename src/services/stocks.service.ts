@@ -1,24 +1,39 @@
 import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors";
-import type { RawStock, RawStockTrade, Stock, StockTrade } from "../types";
+import type {
+  RawStock,
+  RawStockTrade,
+  Stock,
+  StockDetail,
+  StockPortfolioParams,
+  StockPortfolioResult,
+  StockPricePoint,
+  StockTrade,
+  RawStockPortfolioResult,
+} from "../types";
 
-/**
- * Servicio para gestionar la compra y venta de acciones (Stocks).
- */
 export class StocksService {
   constructor(private readonly http: AxiosInstance) {}
 
-  /**
-   * Lista las acciones disponibles para negociar.
-   */
   async list(): Promise<Stock[]> {
     const { data } = await this.http.get<RawStock[]>("/stocks");
     return data.map(mapStock);
   }
 
-  /**
-   * Compra una cantidad determinada de acciones.
-   */
+  async detail(
+    symbol: string,
+    params: { type?: "quote"; timeframe?: "1H" | "24H" | "1W" | "1M" | "1Y" } = {},
+  ): Promise<StockDetail | StockPricePoint[]> {
+    if (!symbol?.trim()) {
+      throw new QvaPayValidationError("El símbolo es requerido", "symbol");
+    }
+    const { data } = await this.http.get<StockDetail | StockPricePoint[]>(
+      `/stocks/${symbol}`,
+      { params },
+    );
+    return data;
+  }
+
   async buy(symbol: string, amount: number): Promise<StockTrade> {
     if (!symbol?.trim()) {
       throw new QvaPayValidationError("El símbolo es requerido", "symbol");
@@ -26,13 +41,13 @@ export class StocksService {
     if (amount <= 0) {
       throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
     }
-    const { data } = await this.http.post<RawStockTrade>(`/stocks/${symbol}/buy`, { amount });
+    const { data } = await this.http.post<RawStockTrade>(
+      `/stocks/${symbol}/buy`,
+      { amount },
+    );
     return mapStockTrade(data);
   }
 
-  /**
-   * Vende una cantidad determinada de acciones.
-   */
   async sell(symbol: string, quantity: number): Promise<StockTrade> {
     if (!symbol?.trim()) {
       throw new QvaPayValidationError("El símbolo es requerido", "symbol");
@@ -40,14 +55,39 @@ export class StocksService {
     if (quantity <= 0) {
       throw new QvaPayValidationError("La cantidad debe ser mayor a 0", "quantity");
     }
-    const { data } = await this.http.post<RawStockTrade>(`/stocks/${symbol}/sell`, { quantity });
+    const { data } = await this.http.post<RawStockTrade>(
+      `/stocks/${symbol}/sell`,
+      { quantity },
+    );
     return mapStockTrade(data);
+  }
+
+  async portfolio(params: StockPortfolioParams = {}): Promise<StockPortfolioResult> {
+    const page = params.page ?? 1;
+    const take = params.take ?? 20;
+    if (page < 1) {
+      throw new QvaPayValidationError("La página debe ser mayor o igual a 1", "page");
+    }
+    if (take < 1 || take > 50) {
+      throw new QvaPayValidationError(
+        "La cantidad por página debe estar entre 1 y 50",
+        "take",
+      );
+    }
+    const { data } = await this.http.get<{ success: boolean; data: RawStockPortfolioResult }>(
+      "/stocks/portfolio",
+      { params: { page, take } },
+    );
+    const raw = data.data;
+    return {
+      positions: raw.positions.map(mapPortfolioPosition),
+      summary: mapPortfolioSummary(raw.summary),
+      trades: raw.trades.map(mapPortfolioTrade),
+      pagination: raw.pagination,
+    };
   }
 }
 
-/**
- * Mapper para la información de una acción.
- */
 function mapStock(raw: RawStock): Stock {
   return {
     symbol: raw.symbol,
@@ -63,9 +103,6 @@ function mapStock(raw: RawStock): Stock {
   };
 }
 
-/**
- * Mapper para el resultado de una operación con acciones.
- */
 function mapStockTrade(raw: RawStockTrade): StockTrade {
   return {
     tradeUuid: raw.trade_uuid,
@@ -77,5 +114,47 @@ function mapStockTrade(raw: RawStockTrade): StockTrade {
     spreadPercent: raw.spread_percent,
     fee: raw.fee,
     extra: raw.extra,
+  };
+}
+
+function mapPortfolioPosition(raw: RawStockPortfolioResult["positions"][number]): StockPortfolioResult["positions"][number] {
+  return {
+    id: raw.id,
+    symbol: raw.symbol,
+    quantity: raw.quantity,
+    avgCost: raw.avg_cost,
+    currentPrice: raw.current_price,
+    marketValue: raw.market_value,
+    costBasis: raw.cost_basis,
+    unrealizedPnl: raw.unrealized_pnl,
+    unrealizedPnlPercent: raw.unrealized_pnl_percent,
+  };
+}
+
+function mapPortfolioSummary(raw: RawStockPortfolioResult["summary"]): StockPortfolioResult["summary"] {
+  return {
+    totalMarketValue: raw.total_market_value,
+    totalCostBasis: raw.total_cost_basis,
+    totalUnrealizedPnl: raw.total_unrealized_pnl,
+    totalUnrealizedPnlPercent: raw.total_unrealized_pnl_percent,
+    marketOpen: raw.market_open,
+  };
+}
+
+function mapPortfolioTrade(raw: RawStockPortfolioResult["trades"][number]): StockPortfolioResult["trades"][number] {
+  return {
+    id: raw.id,
+    uuid: raw.uuid,
+    symbol: raw.symbol,
+    type: raw.type,
+    quantity: raw.quantity,
+    marketPrice: raw.market_price,
+    effectivePrice: raw.effective_price,
+    spreadPercent: raw.spread_percent,
+    feeAmount: raw.fee_amount,
+    totalAmount: raw.total_amount,
+    realizedPnl: raw.realized_pnl,
+    afterHours: raw.after_hours,
+    createdAt: raw.created_at,
   };
 }

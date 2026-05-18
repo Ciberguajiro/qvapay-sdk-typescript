@@ -6,16 +6,17 @@ import type {
   RawAuthResponse,
   RawUser,
   RegisterConfirmationParams,
-  RegisterParams, AuthSessionResponse,
+  RegisterParams,
+  AuthSessionResponse,
   User,
+  Create2faResult,
+  Check2faParams,
+  Reset2faParams,
+  ConfirmReset2faParams,
+  RequestResetPasswordParams,
+  ConfirmResetPasswordParams,
 } from "../types";
 
-/**
- * Servicio para gestionar la autenticación de usuarios.
- *
- * Este servicio permite el flujo completo de identidad: login, registro,
- * confirmación y gestión de sesiones.
- */
 export class AuthService {
   constructor(
     private readonly plainHttp: AxiosInstance,
@@ -23,13 +24,6 @@ export class AuthService {
     private readonly onLogin: (token: string) => void,
   ) {}
 
-  /**
-   * Inicia sesión con correo y contraseña.
-   *
-   * @param params - Credenciales del usuario.
-   * @returns Datos de autenticación y perfil del usuario.
-   * @throws {QvaPayValidationError} Si faltan campos requeridos.
-   */
   async login(params: LoginParams): Promise<AuthResponse> {
     if (!params.email?.trim()) {
       throw new QvaPayValidationError("El correo es requerido", "email");
@@ -46,13 +40,6 @@ export class AuthService {
     return result;
   }
 
-  /**
-   * Registra un nuevo usuario en QvaPay.
-   *
-   * @param params - Datos del nuevo usuario.
-   * @returns Datos de autenticación.
-   * @throws {QvaPayValidationError} Si faltan campos requeridos.
-   */
   async register(params: RegisterParams): Promise<AuthResponse> {
     if (!params.name?.trim()) {
       throw new QvaPayValidationError("El nombre es requerido", "name");
@@ -82,20 +69,15 @@ export class AuthService {
     return result;
   }
 
-  /**
-   * Cierra la sesión del usuario actual.
-   */
   async logout(): Promise<void> {
     await this.userHttp.get("/logout");
   }
 
-  /**
-   * Confirma el registro de un usuario mediante un PIN enviado por correo.
-   *
-   * @param params - Datos de confirmación.
-   * @returns El perfil del usuario confirmado.
-   * @throws {QvaPayValidationError} Si faltan campos requeridos.
-   */
+  async logoutAll(): Promise<string> {
+    const { data } = await this.userHttp.delete<{ message: string }>("/logout");
+    return data.message;
+  }
+
   async registerConfirmation(
     params: RegisterConfirmationParams,
   ): Promise<User> {
@@ -119,9 +101,6 @@ export class AuthService {
     return mapUser(data.user);
   }
 
-  /**
-   * Verifica si el token actual es válido.
-   */
   async checkAuth(): Promise<boolean> {
     const { data } = await this.userHttp.get<{ success: string }>(
       "/check_auth",
@@ -129,9 +108,6 @@ export class AuthService {
     return !!data.success;
   }
 
-  /**
-   * Solicita un nuevo PIN de seguridad para la cuenta.
-   */
   async requestPin(params: LoginParams): Promise<string> {
     if (!params.email?.trim()) {
       throw new QvaPayValidationError("El correo es requerido", "email");
@@ -149,23 +125,83 @@ export class AuthService {
     return data.message;
   }
 
-  /**
-   * Obtiene la lista de sesiones activas del usuario.
-   */
   async getSessions(): Promise<AuthSessionResponse> {
     const { data } = await this.userHttp.get("/auth/sessions");
     return data;
   }
 
-  /**
-   * Elimina una sesión específica por su ID.
-   *
-   * @param id - El identificador de la sesión.
-   * @returns Mensaje de confirmación.
-   */
   async deleteSession(id: string): Promise<string> {
     const { data } = await this.userHttp.delete<{ message: string }>(
       `/auth/sessions/${id}`,
+    );
+    return data.message;
+  }
+
+  async create2fa(): Promise<Create2faResult> {
+    const { data } = await this.userHttp.post<Create2faResult>("/auth/create-2fa");
+    return data;
+  }
+
+  async check2fa(params: Check2faParams): Promise<string> {
+    if (!params.two_factor_code?.trim()) {
+      throw new QvaPayValidationError("El código 2FA es requerido", "two_factor_code");
+    }
+    const { data } = await this.userHttp.post<{ message: string }>(
+      "/auth/check-2fa",
+      { two_factor_code: params.two_factor_code },
+    );
+    return data.message;
+  }
+
+  async reset2fa(params: Reset2faParams): Promise<string> {
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("El correo es requerido", "email");
+    }
+    const { data } = await this.plainHttp.post<{ message: string }>(
+      "/auth/reset-2fa",
+      { email: params.email },
+    );
+    return data.message;
+  }
+
+  async confirmReset2fa(params: ConfirmReset2faParams): Promise<string> {
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("El correo es requerido", "email");
+    }
+    if (!params.code?.trim()) {
+      throw new QvaPayValidationError("El código es requerido", "code");
+    }
+    const { data } = await this.plainHttp.patch<{ message: string }>(
+      "/auth/reset-2fa",
+      { email: params.email, code: params.code },
+    );
+    return data.message;
+  }
+
+  async requestResetPassword(params: RequestResetPasswordParams): Promise<string> {
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("El correo es requerido", "email");
+    }
+    const { data } = await this.plainHttp.post<{ message: string }>(
+      "/auth/reset-password",
+      { email: params.email },
+    );
+    return data.message;
+  }
+
+  async confirmResetPassword(params: ConfirmResetPasswordParams): Promise<string> {
+    if (!params.email?.trim()) {
+      throw new QvaPayValidationError("El correo es requerido", "email");
+    }
+    if (!params.token?.trim()) {
+      throw new QvaPayValidationError("El token es requerido", "token");
+    }
+    if (!params.password) {
+      throw new QvaPayValidationError("La contraseña es requerida", "password");
+    }
+    const { data } = await this.plainHttp.patch<{ message: string }>(
+      "/auth/reset-password",
+      { email: params.email, token: params.token, password: params.password },
     );
     return data.message;
   }

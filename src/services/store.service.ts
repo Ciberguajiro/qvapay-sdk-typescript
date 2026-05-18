@@ -1,49 +1,35 @@
 import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors";
 import type {
-  BuyGiftCardParams,
   BuyPhonePackageParams,
   BuyPhonePackageResult,
-  GiftCard,
+  LatamTopupCatalogCountries,
+  LatamTopupCatalogOffers,
+  LatamTopupCatalogOperators,
+  LatamTopupParams,
+  LatamTopupPurchaseParams,
+  LatamTopupPurchaseResult,
+  LatamTopupResult,
   PhonePackage,
+  PhonePackageDetail,
+  PurchaseVoucherParams,
+  PurchaseVoucherResult,
   RawBuyPhonePackageResult,
-  RawGiftCard,
   RawPhonePackage,
+  VoucherCatalogBrands,
+  VoucherCatalogCountries,
+  VoucherCatalogFeatured,
+  VoucherCatalogOffers,
 } from "../types";
 
-/**
- * Mapper para tarjetas de regalo (Gift Cards).
- */
-function mapGiftCard(raw: RawGiftCard): GiftCard {
-  return {
-    id: raw.id,
-    uuid: raw.uuid,
-    slug: raw.slug,
-    name: raw.name,
-    lead: raw.lead,
-    color: raw.color,
-    tax: raw.tax,
-    taxGold: raw.tax_gold,
-    logo: raw.logo,
-    sublogo: raw.sublogo,
-    desc: raw.desc,
-    meta: raw.meta,
-    featured: raw.featured,
-    category: raw.category,
-    createdAt: raw.created_at,
-    updatedAt: raw.updated_at,
-  };
-}
-
-/**
- * Mapper para paquetes de telefonía.
- */
 function mapPhonePackage(raw: RawPhonePackage): PhonePackage {
   return {
     id: raw.id,
     name: raw.name,
     logo: raw.logo,
-    details: raw.details,
+    details: raw.details.map(
+      (d): PhonePackageDetail => ({ label: d.label, value: d.value }),
+    ),
     price: raw.price,
     goldPrice: raw.gold_price,
     external: raw.external,
@@ -52,9 +38,6 @@ function mapPhonePackage(raw: RawPhonePackage): PhonePackage {
   };
 }
 
-/**
- * Mapper para el resultado de la compra de un paquete de telefonía.
- */
 function mapBuyPhonePackageResult(
   raw: RawBuyPhonePackageResult,
 ): BuyPhonePackageResult {
@@ -65,15 +48,21 @@ function mapBuyPhonePackageResult(
   };
 }
 
-/**
- * Servicio para gestionar compras en la tienda de QvaPay.
- */
+function mapLatamTopupPurchaseResult(raw: {
+  message: string;
+  transaction_uuid: string;
+  buyedService_id: string;
+}): LatamTopupPurchaseResult {
+  return {
+    message: raw.message,
+    transaction_uuid: raw.transaction_uuid,
+    buyedService_id: raw.buyedService_id,
+  };
+}
+
 export class StoreService {
   constructor(private readonly http: AxiosInstance) {}
 
-  /**
-   * Obtiene la lista de paquetes de telefonía (recargas) disponibles.
-   */
   async getPhonePackages(): Promise<PhonePackage[]> {
     const { data } = await this.http.get<{ phone_packages: RawPhonePackage[] }>(
       "/store/phone_package",
@@ -81,9 +70,6 @@ export class StoreService {
     return data.phone_packages.map(mapPhonePackage);
   }
 
-  /**
-   * Compra un paquete de telefonía para un número específico.
-   */
   async buyPhonePackage(
     params: BuyPhonePackageParams,
   ): Promise<BuyPhonePackageResult> {
@@ -100,12 +86,156 @@ export class StoreService {
       );
     }
     const { data } = await this.http.post<RawBuyPhonePackageResult>(
-      "/store/phone_packages/buy",
+      "/store/phone_package",
       {
         phone_package_id: params.phonePackageId,
         phone_number: params.phoneNumber,
       },
     );
     return mapBuyPhonePackageResult(data);
+  }
+
+  // ─── Voucher Catalog ───────────────────────────────────────────────────
+
+  async getVoucherFeatured(): Promise<VoucherCatalogFeatured> {
+    const { data } = await this.http.get<VoucherCatalogFeatured>(
+      "/store/voucher-catalog",
+      { params: { featured: true } },
+    );
+    return data;
+  }
+
+  async getVoucherCountries(): Promise<VoucherCatalogCountries> {
+    const { data } = await this.http.get<VoucherCatalogCountries>(
+      "/store/voucher-catalog",
+      { params: { countries: true } },
+    );
+    return data;
+  }
+
+  async getVoucherBrands(
+    country: string,
+    query?: string,
+  ): Promise<VoucherCatalogBrands> {
+    if (!country?.trim()) {
+      throw new QvaPayValidationError("El código de país es requerido", "country");
+    }
+    const { data } = await this.http.get<VoucherCatalogBrands>(
+      "/store/voucher-catalog",
+      { params: { country, ...(query && { q: query }) } },
+    );
+    return data;
+  }
+
+  async getVoucherOffers(
+    country: string,
+    brand: string,
+  ): Promise<VoucherCatalogOffers> {
+    if (!country?.trim()) {
+      throw new QvaPayValidationError("El código de país es requerido", "country");
+    }
+    if (!brand?.trim()) {
+      throw new QvaPayValidationError("El nombre de la marca es requerido", "brand");
+    }
+    const { data } = await this.http.get<VoucherCatalogOffers>(
+      "/store/voucher-catalog",
+      { params: { country, brand } },
+    );
+    return data;
+  }
+
+  async purchaseVoucher(
+    params: PurchaseVoucherParams,
+  ): Promise<PurchaseVoucherResult> {
+    if (!params.offer_id?.trim()) {
+      throw new QvaPayValidationError("El offer_id es requerido", "offer_id");
+    }
+    if (!params.country?.trim()) {
+      throw new QvaPayValidationError("El país es requerido", "country");
+    }
+    if (!params.brand?.trim()) {
+      throw new QvaPayValidationError("La marca es requerida", "brand");
+    }
+    const { data } = await this.http.post<PurchaseVoucherResult>(
+      "/store/voucher/purchase",
+      params,
+    );
+    return data;
+  }
+
+  // ─── LATAM Topup Catalog ───────────────────────────────────────────────
+
+  async getLatamTopupCountries(): Promise<LatamTopupCatalogCountries> {
+    const { data } = await this.http.get<LatamTopupCatalogCountries>(
+      "/store/topup-catalog",
+      { params: { countries: true } },
+    );
+    return data;
+  }
+
+  async getLatamTopupOperators(
+    country: string,
+  ): Promise<LatamTopupCatalogOperators> {
+    if (!country?.trim()) {
+      throw new QvaPayValidationError("El código de país es requerido", "country");
+    }
+    const { data } = await this.http.get<LatamTopupCatalogOperators>(
+      "/store/topup-catalog",
+      { params: { country } },
+    );
+    return data;
+  }
+
+  async getLatamTopupOffers(
+    country: string,
+    brand: string,
+  ): Promise<LatamTopupCatalogOffers> {
+    if (!country?.trim()) {
+      throw new QvaPayValidationError("El código de país es requerido", "country");
+    }
+    if (!brand?.trim()) {
+      throw new QvaPayValidationError("El nombre del operador es requerido", "brand");
+    }
+    const { data } = await this.http.get<LatamTopupCatalogOffers>(
+      "/store/topup-catalog",
+      { params: { country, brand } },
+    );
+    return data;
+  }
+
+  async getLatamTopup(params: LatamTopupParams): Promise<LatamTopupResult> {
+    if (!params.country?.trim()) {
+      throw new QvaPayValidationError("El país es requerido", "country");
+    }
+    const { data } = await this.http.get<LatamTopupResult>("/store/topup", {
+      params: {
+        country: params.country,
+        ...(params.brand && { brand: params.brand }),
+      },
+    });
+    return data;
+  }
+
+  async purchaseLatamTopup(
+    params: LatamTopupPurchaseParams,
+  ): Promise<LatamTopupPurchaseResult> {
+    if (!params.offer_id?.trim()) {
+      throw new QvaPayValidationError("El offer_id es requerido", "offer_id");
+    }
+    if (!params.phone_number?.trim()) {
+      throw new QvaPayValidationError(
+        "El número de teléfono es requerido",
+        "phone_number",
+      );
+    }
+    if (!params.country?.trim()) {
+      throw new QvaPayValidationError("El país es requerido", "country");
+    }
+    const { data } = await this.http.post<{
+      message: string;
+      transaction_uuid: string;
+      buyedService_id: string;
+    }>("/store/topup", params);
+    return mapLatamTopupPurchaseResult(data);
   }
 }

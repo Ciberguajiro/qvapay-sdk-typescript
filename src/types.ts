@@ -400,7 +400,7 @@ export interface PhonePackage {
   id: number;
   name: string;
   logo: string;
-  details: string;
+  details: PhonePackageDetail[];
   price: number;
   goldPrice: number;
   external: boolean;
@@ -412,7 +412,7 @@ export interface RawPhonePackage {
   id: number;
   name: string;
   logo: string;
-  details: string;
+  details: Array<{ label: string; value: string }>;
   price: number;
   gold_price: number;
   external: boolean;
@@ -491,5 +491,1351 @@ export interface AuthSessionResponse {
     created_at: string;
     expires_at: string;
   }[];
-  currentSessionId: string;
+}
+
+// ─── Merchant V2 ─────────────────────────────────────────────────────────────
+
+export interface ModifyInvoiceParams {
+  transaction_uuid: string;
+  amount?: number;
+  description?: string;
+  remote_id?: string;
+  webhook?: string;
+  products?: ProductInvoiceV2[];
+  expire_at?: string | null;
+}
+
+export interface ChargeParams {
+  amount: number;
+  user_uuid: string;
+  description: string;
+  remote_id: string;
+}
+
+export interface ChargeTransaction {
+  uuid: string;
+  amount: number;
+  description: string;
+  remote_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChargeResult {
+  success: boolean;
+  message: string;
+  transaction: ChargeTransaction;
+}
+
+export interface AuthorizePaymentsParams {
+  remote_id: string;
+  callback: string;
+}
+
+export interface AuthorizePaymentsResult {
+  message: string;
+  url: string;
+}
+
+export interface V2Transaction {
+  uuid: string;
+  amount: number;
+  description: string;
+  products?: Array<{ name: string; price: number; quantity: number }>;
+  remote_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  paidBy?: V2PaidBy;
+}
+
+export interface V2PaidBy {
+  uuid: string;
+  name: string;
+  username: string;
+  lastname: string;
+  image: string;
+  vip: boolean;
+  kyc: string;
+  golden_check: boolean;
+}
+
+export interface V2TransactionsListParams {
+  page?: number;
+  take?: number;
+}
+
+export interface V2TransactionsListResult {
+  message: string;
+  transactions: V2Transaction[];
+}
+
+export interface V2TransactionDetailResult {
+  message: string;
+  transaction: V2Transaction;
+}
+
+// ─── App Management ──────────────────────────────────────────────────────────
+
+export interface AppDetail {
+  uuid: string;
+  name: string;
+  url: string;
+  logo: string;
+  description: string;
+  callback: string;
+  success_url: string;
+  cancel_url: string;
+  active: boolean;
+  enabled: boolean;
+  allowed_payment_auth: boolean;
+  card: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RawAppDetail {
+  uuid: string;
+  name: string;
+  url: string;
+  logo: string;
+  description: string;
+  callback: string;
+  success_url: string;
+  cancel_url: string;
+  active: boolean;
+  enabled: boolean;
+  allowed_payment_auth: boolean;
+  card: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateAppParams {
+  name: string;
+  url: string;
+  logo: File | Blob;
+  desc: string;
+  callback: string;
+  success_url: string;
+  cancel_url: string;
+}
+
+export interface CreateAppResult {
+  uuid: string;
+  secret: string;
+  name: string;
+  url: string;
+  desc: string;
+  logo: string;
+}
+
+export interface UpdateAppParams {
+  name?: string;
+  url?: string;
+  desc?: string;
+  callback?: string;
+  success_url?: string;
+  cancel_url?: string;
+  active?: boolean;
+  enabled?: boolean;
+}
+
+export interface AppLog {
+  id: number;
+  type: string;
+  method: string;
+  path: string;
+  status: number;
+  created_at: string;
+}
+
+export interface AppLogsParams {
+  page?: number;
+  limit?: number;
+  type?: "request" | "webhook";
+}
+
+export interface AppLogsResult {
+  logs: AppLog[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// ─── P2P Extended ────────────────────────────────────────────────────────────
+
+export interface P2PListParams {
+  page?: number;
+  take?: number;
+  type?: "buy" | "sell";
+  coin?: string;
+  orderBy?: string;
+  orderType?: "asc" | "desc";
+  my?: boolean;
+  peer?: string;
+  sortByStatus?: boolean;
+  min?: number;
+  max?: number;
+  search?: string;
+  status?: string;
+}
+
+export interface P2PDetailResult {
+  message: string;
+  p2p: RawP2POffer & {
+    details?: Record<string, string>;
+    tx_id?: string | null;
+    Peer?: RawP2PUser | null;
+    Ratings?: Array<{
+      id: number;
+      rating: number;
+      comment: string;
+      tags: string[];
+      created_at: string;
+      User: RawP2PUser;
+    }>;
+    currentUserId?: string;
+  };
+}
+
+export interface EditP2PParams {
+  amount?: number;
+  receive?: number;
+  only_vip?: boolean | number;
+  message?: string;
+  webhook?: string;
+  tags?: string[];
+  private?: boolean;
+}
+
+export interface ApplyP2PResult {
+  message: string;
+  p2p: string;
+  transaction: string | null;
+}
+
+export interface CancelP2PResult {
+  message: string;
+  p2p: string;
+}
+
+export interface PaidP2PParams {
+  tx_id: string;
+}
+
+export interface ReceivedP2PResult {
+  message: string;
+  p2p: string;
+  amount: number;
+  fee: number;
+  gross_amount: number;
+}
+
+export interface RateP2PParams {
+  rating: number;
+  comment?: string;
+  tags?: string[];
+}
+
+export interface RateP2PResult {
+  message: string;
+  ratingId: string;
+  rating: number;
+}
+
+export interface P2PChatMessage {
+  id: string;
+  p2p_id: string;
+  peer_id: string;
+  message: string;
+  image: string | null;
+  created_at: string;
+  updated_at: string;
+  is_moderator: boolean;
+  moderator_name: string | null;
+}
+
+export interface P2PChatResult {
+  message: string;
+  chat: P2PChatMessage[];
+}
+
+export interface P2PAverage {
+  name: string;
+  average: number;
+  average_buy: number;
+  average_sell: number;
+  count: number;
+  count_buy: number;
+  count_sell: number;
+  updated_at: string;
+}
+
+export interface RawP2PAverage {
+  [key: string]: {
+    name: string;
+    average: number;
+    average_buy: number;
+    average_sell: number;
+    count: number;
+    count_buy: number;
+    count_sell: number;
+    updated_at: string;
+  };
+}
+
+// ─── User Profile ────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  email: string;
+  bio: string;
+  balance: number;
+  satoshis: number;
+  phone: string;
+  phone_verified: boolean;
+  kyc: boolean;
+  golden_check: boolean;
+  golden_expire: string | null;
+  p2p_enabled: boolean;
+  cover: string;
+  image: string;
+  twitter: string;
+  telegram: string;
+  two_factor_secret: string | null;
+  average_rating: number;
+  latest_transactions: Array<{
+    uuid: string;
+    amount: number;
+    description: string;
+    remote_id: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    logo: string;
+    App: { uuid: string; logo: string; url: string; name: string };
+    User: { uuid: string; username: string; name: string; lastname: string; bio: string; kyc: boolean; golden_check: boolean; image: string };
+    PaidBy: { uuid: string; username: string; name: string; lastname: string; bio: string; kyc: boolean; golden_check: boolean; image: string };
+  }>;
+}
+
+export interface UpdateUserParams {
+  name?: string;
+  lastname?: string;
+  bio?: string;
+  address?: string;
+  twitter?: string;
+  telegram?: string;
+}
+
+export interface UserSearchResult {
+  uuid: string;
+  name: string;
+  lastname: string;
+  username: string;
+  kyc: boolean;
+  golden_check: boolean;
+  image: string;
+  cover: string | null;
+  vip: boolean;
+  isContact: boolean;
+  isSyncedContact?: boolean;
+}
+
+export interface KycStatus {
+  uuid: string;
+  kyc: boolean;
+  kyc_status: string;
+}
+
+export interface KycResult {
+  result: string;
+  data: KycStatus | string;
+}
+
+// ─── Payment Methods ─────────────────────────────────────────────────────────
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  details: string;
+  created_at: string;
+  updated_at: string;
+  coin: { name: string; tick: string; logo: string };
+}
+
+export interface CreatePaymentMethodParams {
+  coin: string;
+  name: string;
+  details: string;
+}
+
+// ─── Payment Auths ───────────────────────────────────────────────────────────
+
+export interface PaymentAuth {
+  id: string;
+  app: { id: string; name: string; url: string; logo: string; description: string };
+  created_at: string;
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+export interface NotificationSettings {
+  email_enabled: boolean;
+  telegram_enabled: boolean;
+  push_enabled: boolean;
+  sms_enabled: boolean;
+}
+
+export interface UpdateNotificationParams {
+  email_enabled?: boolean;
+  telegram_enabled?: boolean;
+  push_enabled?: boolean;
+  sms_enabled?: boolean;
+}
+
+// ─── Contacts ────────────────────────────────────────────────────────────────
+
+export interface Contact {
+  id: string;
+  name: string;
+  favorite: boolean;
+  Contact: {
+    uuid: string;
+    name: string;
+    image: string;
+    username: string;
+    kyc: boolean;
+    vip: boolean;
+    golden_check: boolean;
+    phone_verified: boolean;
+    telegram_verified: boolean;
+  };
+  created_at: string;
+}
+
+export interface ContactsResult {
+  message: string;
+  contacts: Contact[];
+}
+
+export interface CreateContactParams {
+  contact_uuid: string;
+  name?: string;
+}
+
+export interface ToggleFavoriteResult {
+  message: string;
+  favorite: boolean;
+}
+
+// ─── TopUp ───────────────────────────────────────────────────────────────────
+
+export interface TopUpParams {
+  amount: number;
+  pay_method: string;
+  webhook_url?: string;
+}
+
+export interface TopUpResult {
+  result: string;
+  data: {
+    wallet: string;
+    memo: string | null;
+    coin: string;
+    value: number;
+    price: number;
+    transaction_id: string;
+    transaction_uuid: string;
+    transaction_url: string;
+    payment_id: string;
+    redirect_url: string | null;
+  };
+}
+
+// ─── Payment Links ───────────────────────────────────────────────────────────
+
+export interface PaymentLink {
+  id: string;
+  name: string;
+  product_id: string;
+  amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePaymentLinkParams {
+  name: string;
+  product_id: string;
+  amount: number;
+}
+
+// ─── Store Vouchers ──────────────────────────────────────────────────────────
+
+export interface VoucherFeatured {
+  brand: string;
+  slug: string;
+  country: string;
+  logo_url: string;
+  offer_count: number;
+  country_meta: { name: string; flag: string };
+}
+
+export interface VoucherCountry {
+  code: string;
+  offer_count: number;
+  name: string;
+  flag: string;
+}
+
+export interface VoucherBrand {
+  brand: string;
+  slug: string;
+  country: string;
+  logo_url: string;
+  bg_color: string;
+  offer_count: number;
+  sample_price: number;
+}
+
+export interface VoucherOffer {
+  source: string;
+  offer_id: string;
+  name: string;
+  notes: string | null;
+  sent_benefits: string | null;
+  send?: { currency: string; value: number };
+  sub_type: string;
+  price_type: string;
+  price?: number;
+  price_min?: number;
+  price_max?: number;
+  service_fee_pct?: number;
+}
+
+export interface VoucherCatalogFeatured {
+  featured: VoucherFeatured[];
+}
+
+export interface VoucherCatalogCountries {
+  countries: VoucherCountry[];
+}
+
+export interface VoucherCatalogBrands {
+  country: { name: string; flag: string };
+  brands: VoucherBrand[];
+}
+
+export interface VoucherCatalogOffers {
+  country: { name: string; flag: string };
+  brand: string;
+  brand_logo_url: string;
+  offers: VoucherOffer[];
+}
+
+export interface PurchaseVoucherParams {
+  offer_id: string;
+  country: string;
+  brand: string;
+  amount?: number;
+}
+
+export interface PurchaseVoucherResult {
+  message: string;
+  transaction_uuid: string;
+  buyedService_id: string;
+}
+
+// ─── Store Topups LATAM (legacy) ─────────────────────────────────────────────
+
+// ─── 2FA ─────────────────────────────────────────────────────────────────────
+
+export interface Create2faResult {
+  message: string;
+  secret: string;
+  qrcode: string;
+}
+
+export interface Check2faParams {
+  two_factor_code: string;
+}
+
+export interface Reset2faParams {
+  email: string;
+}
+
+export interface ConfirmReset2faParams {
+  email: string;
+  code: string;
+}
+
+// ─── Reset Password ──────────────────────────────────────────────────────────
+
+export interface RequestResetPasswordParams {
+  email: string;
+}
+
+export interface ConfirmResetPasswordParams {
+  email: string;
+  token: string;
+  password: string;
+}
+
+// ─── Coins Categorized ───────────────────────────────────────────────────────
+
+export interface CoinCategory {
+  id: number;
+  name: string;
+  icon: string;
+  coins: Array<{
+    id: string;
+    name: string;
+    tick: string;
+    logo: string;
+    price: string;
+    change_24h: string;
+  }>;
+}
+
+export interface CoinPriceHistoryPoint {
+  time: number;
+  value: number;
+}
+
+export interface CoinDetail {
+  id: string;
+  name: string;
+  tick: string;
+  logo: string;
+  price: string;
+  change24h: string;
+}
+
+export interface RawCoinDetail {
+  id: string;
+  name: string;
+  tick: string;
+  logo: string;
+  price: string;
+  change_24h: string;
+}
+
+// ─── Stocks Extended ─────────────────────────────────────────────────────────
+
+export interface StockDetail {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changeDollar: number;
+  open: number;
+  high: number;
+  low: number;
+  previousClose: number;
+  volume: number;
+  fiftyTwoWeekHigh: number;
+  fiftyTwoWeekLow: number;
+  exchange: string;
+  type: string;
+  description: string;
+  sector: string;
+  industry: string;
+  ceo: string;
+}
+
+export interface StockPricePoint {
+  time: number;
+  value: number;
+}
+
+export interface StockPortfolioPosition {
+  id: string;
+  symbol: string;
+  quantity: number;
+  avgCost: number;
+  currentPrice: number;
+  marketValue: number;
+  costBasis: number;
+  unrealizedPnl: number;
+  unrealizedPnlPercent: number;
+}
+
+export interface RawStockPortfolioPosition {
+  id: string;
+  symbol: string;
+  quantity: number;
+  avg_cost: number;
+  current_price: number;
+  market_value: number;
+  cost_basis: number;
+  unrealized_pnl: number;
+  unrealized_pnl_percent: number;
+}
+
+export interface StockPortfolioSummary {
+  totalMarketValue: number;
+  totalCostBasis: number;
+  totalUnrealizedPnl: number;
+  totalUnrealizedPnlPercent: number;
+  marketOpen: boolean;
+}
+
+export interface RawStockPortfolioSummary {
+  total_market_value: number;
+  total_cost_basis: number;
+  total_unrealized_pnl: number;
+  total_unrealized_pnl_percent: number;
+  market_open: boolean;
+}
+
+export interface StockPortfolioTrade {
+  id: string;
+  uuid: string;
+  symbol: string;
+  type: "buy" | "sell";
+  quantity: number;
+  marketPrice: number;
+  effectivePrice: number;
+  spreadPercent: number;
+  feeAmount: number;
+  totalAmount: number;
+  realizedPnl: number | null;
+  afterHours: boolean;
+  createdAt: string;
+}
+
+export interface RawStockPortfolioTrade {
+  id: string;
+  uuid: string;
+  symbol: string;
+  type: "buy" | "sell";
+  quantity: number;
+  market_price: number;
+  effective_price: number;
+  spread_percent: number;
+  fee_amount: number;
+  total_amount: number;
+  realized_pnl: number | null;
+  after_hours: boolean;
+  created_at: string;
+}
+
+export interface StockPortfolioResult {
+  positions: StockPortfolioPosition[];
+  summary: StockPortfolioSummary;
+  trades: StockPortfolioTrade[];
+  pagination: { page: number; take: number };
+}
+
+export interface RawStockPortfolioResult {
+  positions: RawStockPortfolioPosition[];
+  summary: RawStockPortfolioSummary;
+  trades: RawStockPortfolioTrade[];
+  pagination: { page: number; take: number };
+}
+
+export interface StockPortfolioParams {
+  page?: number;
+  take?: number;
+}
+
+export interface StockDetailParams {
+  type?: "quote";
+  timeframe?: "1H" | "24H" | "1W" | "1M" | "1Y";
+}
+
+// ─── User Extended ───────────────────────────────────────────────────────────
+
+export interface UserExtendedProfile {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  email: string;
+  bio: string;
+  balance: number;
+  phone: string;
+  phoneVerified: boolean;
+  kyc: boolean;
+  goldenCheck: boolean;
+  goldenExpire: string | null;
+  p2pEnabled: boolean;
+  twoFactorSecret: string | null;
+  p2pCompletedCount: number;
+  p2pAverageRating: number;
+  p2pRatersCount: number;
+  withdraws: Array<{
+    amount: number;
+    status: string;
+    paymentMethod: string;
+    txId: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+}
+
+export interface RawUserExtendedProfile {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  email: string;
+  bio: string;
+  balance: number;
+  phone: string;
+  phone_verified: boolean;
+  kyc: boolean;
+  golden_check: boolean;
+  golden_expire: string | null;
+  p2p_enabled: boolean;
+  two_factor_secret: string | null;
+  p2p_completed_count: number;
+  p2p_average_rating: number;
+  p2p_raters_count: number;
+  withdraws: Array<{
+    amount: number;
+    status: string;
+    payment_method: string;
+    tx_id: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+
+export interface AvatarUploadResult {
+  result: string;
+  message: string;
+  data: { url: string; path: string };
+}
+
+export interface GoldStatus {
+  goldenCheck: boolean;
+  goldenExpire: string | null;
+}
+
+export interface RawGoldStatus {
+  user: {
+    golden_check: boolean;
+    golden_expire: string | null;
+  };
+}
+
+export interface BuyGoldParams {
+  uuid: string;
+  duration: number;
+}
+
+export interface BuyGoldResult {
+  success: boolean;
+  user: string;
+  isSelfPurchase: boolean;
+  duration: number;
+}
+
+export interface ReferralUser {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  kyc: boolean;
+  goldenCheck: boolean;
+  image: string;
+}
+
+export interface RawReferralUser {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  kyc: boolean;
+  golden_check: boolean;
+  image: string;
+}
+
+export interface ReferralsResult {
+  referrals: ReferralUser[];
+  totalReferrals: number;
+}
+
+export interface RawReferralsResult {
+  referrals: RawReferralUser[];
+  totalReferrals: number;
+}
+
+// ─── Withdraw ────────────────────────────────────────────────────────────────
+
+export interface Withdraw {
+  withdrawId: number;
+  transactionId: string;
+  receiveAmount: number;
+  receiveAmountCoin: number;
+  feeToApply: number;
+  amount: number;
+  coin: string;
+  status?: string;
+  paymentMethod?: string;
+  txId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RawWithdraw {
+  withdraw_id: number;
+  transaction_id: string;
+  receive_amount: number;
+  receive_amount_coin: number;
+  fee_to_apply: number;
+  amount: number;
+  coin: string;
+  status?: string;
+  payment_method?: string;
+  tx_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WithdrawListResult {
+  result: string;
+  data: Withdraw[];
+}
+
+export interface RawWithdrawListResult {
+  result: string;
+  data: RawWithdraw[];
+}
+
+export interface CreateWithdrawParams {
+  amount: number;
+  payMethod: string;
+  details: Record<string, string>;
+  pin?: string;
+  note?: string;
+  webhook?: string;
+}
+
+export interface CreateWithdrawResult {
+  withdrawId: number;
+  transactionId: string;
+  receiveAmount: number;
+  receiveAmountCoin: number;
+  feeToApply: number;
+  amount: number;
+  coin: string;
+}
+
+export interface RawCreateWithdrawResult {
+  withdraw_id: number;
+  transaction_id: string;
+  receive_amount: number;
+  receive_amount_coin: number;
+  fee_to_apply: number;
+  amount: number;
+  coin: string;
+}
+
+export interface WithdrawDetail {
+  withdraw: Withdraw;
+}
+
+export interface RawWithdrawDetail {
+  withdraw: RawWithdraw;
+}
+
+// ─── Store Vouchers (updated types for new catalog API) ──────────────────────
+
+export interface VoucherFeatured {
+  brand: string;
+  slug: string;
+  country: string;
+  logo_url: string;
+  offer_count: number;
+  country_meta: { name: string; flag: string };
+}
+
+export interface VoucherCountry {
+  code: string;
+  offer_count: number;
+  name: string;
+  flag: string;
+}
+
+export interface VoucherBrand {
+  brand: string;
+  slug: string;
+  country: string;
+  logo_url: string;
+  bg_color: string;
+  offer_count: number;
+  sample_price: number;
+}
+
+export interface VoucherOffer {
+  source: string;
+  offer_id: string;
+  name: string;
+  notes: string | null;
+  sent_benefits: string | null;
+  send?: { currency: string; value: number };
+  sub_type: string;
+  price_type: string;
+  price?: number;
+  price_min?: number;
+  price_max?: number;
+  service_fee_pct?: number;
+}
+
+export interface VoucherCatalogFeatured {
+  featured: VoucherFeatured[];
+}
+
+export interface VoucherCatalogCountries {
+  countries: VoucherCountry[];
+}
+
+export interface VoucherCatalogBrands {
+  country: { name: string; flag: string };
+  brands: VoucherBrand[];
+}
+
+export interface VoucherCatalogOffers {
+  country: { name: string; flag: string };
+  brand: string;
+  brand_logo_url: string;
+  offers: VoucherOffer[];
+}
+
+export interface PurchaseVoucherParams {
+  offer_id: string;
+  country: string;
+  brand: string;
+  amount?: number;
+}
+
+export interface PurchaseVoucherResult {
+  message: string;
+  transaction_uuid: string;
+  buyedService_id: string;
+}
+
+// ─── Store LATAM Topup (updated types for new catalog API) ───────────────────
+
+export interface LatamTopupCountry {
+  code: string;
+  offer_count: number;
+  name: string;
+  flag: string;
+  dial: string;
+  pattern: string;
+}
+
+export interface LatamTopupOperator {
+  brand: string;
+  slug: string;
+  source: string;
+  logo_url: string;
+  bg_color: string;
+  offer_count: number;
+  price_min: number;
+  price_max: number;
+}
+
+export interface LatamTopupOffer {
+  source: string;
+  offer_id: string;
+  name: string;
+  notes: string | null;
+  sent_benefits: string | null;
+  sub_type: string;
+  price_type: "FIXED" | "RANGE";
+  price?: number;
+  price_min?: number;
+  price_max?: number;
+  service_fee_pct?: number;
+}
+
+export interface LatamTopupCatalogCountries {
+  countries: LatamTopupCountry[];
+}
+
+export interface LatamTopupCatalogOperators {
+  country: { name: string; flag: string; dial: string; pattern: string };
+  brands: LatamTopupOperator[];
+}
+
+export interface LatamTopupCatalogOffers {
+  country: { name: string; flag: string; dial: string; pattern: string };
+  brand: string;
+  brand_logo_url: string;
+  offers: LatamTopupOffer[];
+}
+
+export interface LatamTopupPurchaseParams {
+  offer_id: string;
+  phone_number: string;
+  country: string;
+  amount?: number;
+}
+
+export interface LatamTopupPurchaseResult {
+  message: string;
+  transaction_uuid: string;
+  buyedService_id: string;
+}
+
+export interface LatamTopupParams {
+  country: string;
+  brand?: string;
+}
+
+export interface LatamTopupOfferLegacy {
+  offerId: string;
+  brand: string;
+  country: string;
+  priceType: "FIXED" | "RANGE";
+  price: number | { min: number; max: number };
+  notes: string | null;
+  subType: string | null;
+}
+
+export interface LatamTopupResult {
+  offers: LatamTopupOfferLegacy[];
+  country: string;
+}
+
+// ─── Phone Package (updated details type) ────────────────────────────────────
+
+export interface PhonePackageDetail {
+  label: string;
+  value: string;
+}
+
+export interface PhonePackage {
+  id: number;
+  name: string;
+  logo: string;
+  details: PhonePackageDetail[];
+  price: number;
+  goldPrice: number;
+  external: boolean;
+  externalAmount: number;
+  period: string;
+}
+
+export interface RawPhonePackage {
+  id: number;
+  name: string;
+  logo: string;
+  details: Array<{ label: string; value: string }>;
+  price: number;
+  gold_price: number;
+  external: boolean;
+  external_amount: number;
+  period: string;
+}
+
+// ─── Transaction Detail (User transactions) ──────────────────────────────────
+
+export interface TransactionDetailUser {
+  uuid: string;
+  name: string;
+  lastname: string;
+  username: string;
+  image: string;
+  vip: boolean;
+  kyc: boolean;
+  goldenCheck: boolean;
+}
+
+export interface RawTransactionDetailUser {
+  uuid: string;
+  name: string;
+  lastname: string;
+  username: string;
+  image: string;
+  vip: boolean;
+  kyc: boolean;
+  golden_check: boolean;
+}
+
+export interface TransactionDetailApp {
+  uuid: string;
+  name: string;
+  url: string;
+  logo: string;
+  desc: string;
+}
+
+export interface RawTransactionDetailApp {
+  uuid: string;
+  name: string;
+  url: string;
+  logo: string;
+  desc: string;
+}
+
+export interface TransactionDetailCoin {
+  tick: string;
+  name: string;
+  logo: string;
+}
+
+export interface TransactionDetailWallet {
+  walletType: string;
+  wallet: string;
+  value: number;
+  received: number;
+  txid: string;
+  status: string;
+  createdAt: string;
+  coin: TransactionDetailCoin;
+}
+
+export interface RawTransactionDetailWallet {
+  wallet_type: string;
+  wallet: string;
+  value: number;
+  received: number;
+  txid: string;
+  status: string;
+  created_at: string;
+  coin: TransactionDetailCoin;
+}
+
+export interface TransactionDetailP2P {
+  uuid: string;
+  type: string;
+  amount: number;
+  receive: number;
+  status: string;
+  createdAt: string;
+  coin: TransactionDetailCoin;
+  user: TransactionDetailUser;
+  peer: TransactionDetailUser;
+}
+
+export interface RawTransactionDetailP2P {
+  uuid: string;
+  type: string;
+  amount: number;
+  receive: number;
+  status: string;
+  created_at: string;
+  coin: TransactionDetailCoin;
+  user: RawTransactionDetailUser;
+  peer: RawTransactionDetailUser;
+}
+
+export interface TransactionDetailWithdraw {
+  amount: number;
+  receive: number;
+  paymentMethod: string;
+  status: string;
+  txId: string;
+  evidenceUrl: string;
+  createdAt: string;
+  coin: TransactionDetailCoin;
+}
+
+export interface RawTransactionDetailWithdraw {
+  amount: number;
+  receive: number;
+  payment_method: string;
+  status: string;
+  tx_id: string;
+  evidence_url: string;
+  created_at: string;
+  coin: TransactionDetailCoin;
+}
+
+export interface TransactionDetailService {
+  amount: number;
+  status: string;
+  createdAt: string;
+  service: { uuid: string; name: string; logo: string; sublogo: string };
+}
+
+export interface RawTransactionDetailService {
+  amount: number;
+  status: string;
+  created_at: string;
+  service: { uuid: string; name: string; logo: string; sublogo: string };
+}
+
+export interface TransactionDetail {
+  uuid: string;
+  amount: string;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  description: string;
+  remoteId: string;
+  user: TransactionDetailUser | null;
+  paidBy: TransactionDetailUser | null;
+  app: TransactionDetailApp | null;
+  wallet: TransactionDetailWallet | null;
+  p2p: TransactionDetailP2P | null;
+  withdraw: TransactionDetailWithdraw | null;
+  service: TransactionDetailService | null;
+}
+
+export interface RawTransactionDetail {
+  uuid: string;
+  amount: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  description: string;
+  remote_id: string;
+  user: RawTransactionDetailUser | null;
+  paid_by: RawTransactionDetailUser | null;
+  app: RawTransactionDetailApp | null;
+  wallet: RawTransactionDetailWallet | null;
+  p2p: RawTransactionDetailP2P | null;
+  withdraw: RawTransactionDetailWithdraw | null;
+  service: RawTransactionDetailService | null;
+}
+
+export interface TransactionDetailResult {
+  message: string;
+  data: TransactionDetail;
+}
+
+export interface RawTransactionDetailResult {
+  message: string;
+  data: RawTransactionDetail;
+}
+
+export interface TransactionListParams {
+  take?: number;
+  page?: number;
+  status?: "paid" | "pending" | "cancelled";
+  search?: string;
+  query?: string;
+  uuid?: string;
+  userUuid?: string;
+  order?: "asc" | "desc";
+  orderBy?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  includeTotal?: boolean;
+}
+
+export interface TransactionListWithTotal {
+  transactions: Transaction[];
+  total: number;
+}
+
+export interface RawTransactionListWithTotal {
+  transactions: RawTransaction[];
+  total: number;
 }
