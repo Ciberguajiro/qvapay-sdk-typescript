@@ -23,16 +23,18 @@ function attachErrorInterceptor(instance: AxiosInstance): void {
 
       const { status, data } = error.response as {
         status: number;
-        data: Record<string, string> | undefined;
+        data: Record<string, any> | undefined;
       };
       const apiMessage: string =
         data?.message ?? data?.error ?? "Error de la API";
+      const errorCode: string | undefined =
+        typeof data?.code === "string" ? data.code : undefined;
 
       if (status === 401 || status === 403) {
         throw new QvaPayAuthError(apiMessage, status);
       }
 
-      throw new QvaPayApiError(apiMessage, status, data?.status_message);
+      throw new QvaPayApiError(apiMessage, status, data?.status_message, errorCode);
     },
   );
 }

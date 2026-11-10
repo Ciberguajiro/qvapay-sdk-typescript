@@ -8,10 +8,13 @@ import type {
   RawTransactionDetailResult,
   RawTransactionListWithTotal,
   Transaction,
+  TransactionComment,
+  TransactionCommentsResult,
   TransactionDetail,
   TransactionDetailResult,
   TransactionListParams,
   TransactionListWithTotal,
+  TransactionStatusResult,
   TransferParams,
   TransferResult,
 } from "../types";
@@ -21,15 +24,18 @@ import { mapAppInfo } from "./app.service";
 export class TransactionsService {
   constructor(private readonly http: AxiosInstance) {}
 
-  async list(page = 1): Promise<PaginatedResponse<Transaction>> {
+  /**
+   * Obtiene el listado de transacciones del usuario autenticado.
+   * La ruta oficial documentada es GET /transaction.
+   */
+  async list(page = 1): Promise<Transaction[]> {
     if (page < 1) {
       throw new QvaPayValidationError("La página debe ser mayor o igual a 1", "page");
     }
-    const { data } = await this.http.get<RawPaginatedResponse<RawTransaction>>(
-      "/transactions",
-      { params: { page } },
-    );
-    return mapPaginated(data, mapTransaction);
+    const { data } = await this.http.get<RawTransaction[]>("/transaction", {
+      params: { page },
+    });
+    return data.map(mapTransaction);
   }
 
   async listUser(params: TransactionListParams = {}): Promise<Transaction[] | TransactionListWithTotal> {
@@ -137,6 +143,68 @@ export class TransactionsService {
     const { data } = await this.http.get<Blob>(`/transaction/${uuid}/pdf`, {
       responseType: "blob",
     });
+    return data;
+  }
+
+  /**
+   * Obtiene los comentarios de una transacción (GET /transaction/:uuid/comments).
+   */
+  async getComments(uuid: string): Promise<TransactionCommentsResult> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.get<TransactionCommentsResult>(
+      `/transaction/${uuid}/comments`,
+    );
+    return data;
+  }
+
+  /**
+   * Publica un comentario en una transacción (POST /transaction/:uuid/comments).
+   */
+  async createComment(uuid: string, body: string): Promise<{ data: TransactionComment }> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    if (!body?.trim()) {
+      throw new QvaPayValidationError("El contenido del comentario es requerido", "body");
+    }
+    if (body.length > 600) {
+      throw new QvaPayValidationError("El comentario no puede exceder 600 caracteres", "body");
+    }
+    const { data } = await this.http.post<{ data: TransactionComment }>(
+      `/transaction/${uuid}/comments`,
+      { body },
+    );
+    return data;
+  }
+
+  /**
+   * Elimina un comentario propio de una transacción (DELETE /transaction/:uuid/comments/:comment).
+   */
+  async deleteComment(uuid: string, commentId: string): Promise<{ data: { uuid: string; deleted: boolean } }> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de transacción es requerido", "uuid");
+    }
+    if (!commentId?.trim()) {
+      throw new QvaPayValidationError("El ID del comentario es requerido", "commentId");
+    }
+    const { data } = await this.http.delete<{ data: { uuid: string; deleted: boolean } }>(
+      `/transaction/${uuid}/comments/${commentId}`,
+    );
+    return data;
+  }
+
+  /**
+   * Consulta ligera del estado de una transacción propia (GET /api/transaction/:uuid/status).
+   */
+  async getStatus(uuid: string): Promise<TransactionStatusResult> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.get<TransactionStatusResult>(
+      `/api/transaction/${uuid}/status`,
+    );
     return data;
   }
 }

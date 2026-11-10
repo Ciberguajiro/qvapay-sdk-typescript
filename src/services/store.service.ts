@@ -63,6 +63,101 @@ function mapLatamTopupPurchaseResult(raw: {
 export class StoreService {
   constructor(private readonly http: AxiosInstance) {}
 
+  /**
+   * Obtiene la lista general de productos de la tienda (GET /store).
+   */
+  async list(): Promise<{ message: string; data: any[] }> {
+    const { data } = await this.http.get<{ message: string; data: any[] }>("/store");
+    return data;
+  }
+
+  /**
+   * Obtiene las compras del usuario autenticado (GET /store/my).
+   */
+  async getMyPurchases(): Promise<{ message: string; data: any[] }> {
+    const { data } = await this.http.get<{ message: string; data: any[] }>("/store/my");
+    return data;
+  }
+
+  /**
+   * Obtiene el detalle de una compra por su buyedService_id (GET /store/my/:id).
+   */
+  async getMyPurchase(id: number | string): Promise<{ message: string; data: any }> {
+    if (!id) {
+      throw new QvaPayValidationError("El ID de la compra es requerido", "id");
+    }
+    const { data } = await this.http.get<{ message: string; data: any }>(`/store/my/${id}`);
+    return data;
+  }
+
+  /**
+   * Consulta el catálogo de planes eSIM (GET /store/esim-catalog).
+   */
+  async getEsimCatalog(params?: { countries?: boolean; country?: string }): Promise<any> {
+    const queryParams: Record<string, any> = {};
+    if (params?.countries) queryParams.countries = "";
+    if (params?.country) queryParams.country = params.country;
+    const { data } = await this.http.get<any>("/store/esim-catalog", {
+      params: queryParams,
+    });
+    return data;
+  }
+
+  /**
+   * Compra un plan de datos eSIM (POST /store/esim/purchase).
+   */
+  async purchaseEsim(params: { offer_id: string; country: string }): Promise<any> {
+    if (!params.offer_id?.trim()) {
+      throw new QvaPayValidationError("El offer_id es requerido", "offer_id");
+    }
+    if (!params.country?.trim()) {
+      throw new QvaPayValidationError("El país es requerido", "country");
+    }
+    const { data } = await this.http.post<any>("/store/esim/purchase", params);
+    return data;
+  }
+
+  /**
+   * Consulta la elegibilidad para pagos con PIX (GET /pix/eligibility).
+   */
+  async getPixEligibility(): Promise<any> {
+    const { data } = await this.http.get<any>("/pix/eligibility");
+    return data;
+  }
+
+  /**
+   * Crea un checkout con código PIX (POST /pix/checkout).
+   */
+  async createPixCheckout(params: Record<string, any>): Promise<any> {
+    if (!params.source?.trim()) {
+      throw new QvaPayValidationError("El parámetro source es requerido", "source");
+    }
+    const { data } = await this.http.post<any>("/pix/checkout", params);
+    return data;
+  }
+
+  /**
+   * Consulta el estado de un cobro PIX (GET /pix/checkout/:uuid).
+   */
+  async getPixCheckout(uuid: string): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.get<any>(`/pix/checkout/${uuid}`);
+    return data;
+  }
+
+  /**
+   * Cancela un cobro PIX abierto (DELETE /pix/checkout/:uuid).
+   */
+  async cancelPixCheckout(uuid: string): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.delete<any>(`/pix/checkout/${uuid}`);
+    return data;
+  }
+
   async getPhonePackages(): Promise<PhonePackage[]> {
     const { data } = await this.http.get<{ phone_packages: RawPhonePackage[] }>(
       "/store/phone_package",

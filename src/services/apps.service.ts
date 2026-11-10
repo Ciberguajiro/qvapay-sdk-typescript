@@ -116,4 +116,87 @@ export class AppsService {
     });
     return data;
   }
+
+  /**
+   * Lista los botones de pago de una aplicación (GET /app/:uuid/pay-buttons).
+   */
+  async getPayButtons(uuid: string): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de la app es requerido", "uuid");
+    }
+    const { data } = await this.userHttp.get<any>(`/app/${uuid}/pay-buttons`);
+    return data;
+  }
+
+  /**
+   * Crea un nuevo botón de pago para la aplicación (POST /app/:uuid/pay-buttons).
+   */
+  async createPayButton(
+    uuid: string,
+    params: { name: string; description?: string; amount: number },
+  ): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de la app es requerido", "uuid");
+    }
+    if (!params.name?.trim()) {
+      throw new QvaPayValidationError("El nombre es requerido", "name");
+    }
+    if (params.amount <= 0) {
+      throw new QvaPayValidationError("El monto debe ser mayor a 0", "amount");
+    }
+    const { data } = await this.userHttp.post<any>(
+      `/app/${uuid}/pay-buttons`,
+      params,
+    );
+    return data;
+  }
+
+  /**
+   * Modifica un botón de pago de la aplicación (PATCH /app/:uuid/pay-buttons/:button).
+   */
+  async updatePayButton(
+    uuid: string,
+    buttonUuid: string,
+    params: { name?: string; description?: string; amount?: number; active?: boolean },
+  ): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de la app es requerido", "uuid");
+    }
+    if (!buttonUuid?.trim()) {
+      throw new QvaPayValidationError("El UUID del botón es requerido", "buttonUuid");
+    }
+    const { data } = await this.userHttp.patch<any>(
+      `/app/${uuid}/pay-buttons/${buttonUuid}`,
+      params,
+    );
+    return data;
+  }
+
+  /**
+   * Consulta la conversación de revisión de una mini-app (GET /app/:uuid/miniapp).
+   */
+  async getMiniAppConversation(uuid: string): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de la app es requerido", "uuid");
+    }
+    const { data } = await this.userHttp.get<any>(`/app/${uuid}/miniapp`);
+    return data;
+  }
+
+  /**
+   * Envía un mensaje en la conversación de revisión de la mini-app (POST /app/:uuid/miniapp/messages).
+   */
+  async sendMiniAppMessage(uuid: string, message: string): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID de la app es requerido", "uuid");
+    }
+    if (!message?.trim()) {
+      throw new QvaPayValidationError("El mensaje es requerido", "message");
+    }
+    const { data } = await this.userHttp.post<any>(
+      `/app/${uuid}/miniapp/messages`,
+      { message },
+    );
+    return data;
+  }
 }

@@ -1,5 +1,6 @@
 import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors";
+import { DEFAULT_BASE_URL } from "../utils";
 import type {
   CreateP2PParams,
   P2PCoin,
@@ -20,6 +21,12 @@ import type {
   P2PChatMessage,
   P2PChatResult,
   P2PAverage,
+  P2PCompletedPairsAverage,
+  P2PAttachment,
+  P2PAttachmentsResult,
+  P2PPromoResult,
+  P2PPromoCreateParams,
+  P2PFeedSubscriptionResult,
   RawP2PAverage,
 } from "../types";
 
@@ -309,9 +316,162 @@ export class P2PService {
         count: entry.count,
         count_buy: entry.count_buy,
         count_sell: entry.count_sell,
+        median: entry.median,
+        median_buy: entry.median_buy,
+        median_sell: entry.median_sell,
+        window_hours: entry.window_hours,
         updated_at: entry.updated_at,
       };
     }
     return result;
+  }
+
+  async getCompletedPairsAverage(coin: string): Promise<P2PCompletedPairsAverage> {
+    if (!coin?.trim()) {
+      throw new QvaPayValidationError("La moneda es requerida", "coin");
+    }
+    const { data } = await this.http.get<P2PCompletedPairsAverage>(
+      "/p2p/completed_pairs_average",
+      { params: { coin } },
+    );
+    return data;
+  }
+
+  async getFeatured(): Promise<{ data: { promoted: any[]; offers: any[] } }> {
+    const { data } = await this.http.get<{ data: { promoted: any[]; offers: any[] } }>(
+      "/p2p/featured",
+    );
+    return data;
+  }
+
+  async getPromo(coin: string): Promise<P2PPromoResult> {
+    if (!coin?.trim()) {
+      throw new QvaPayValidationError("La moneda es requerida", "coin");
+    }
+    const { data } = await this.http.get<P2PPromoResult>("/p2p/promo", {
+      params: { coin },
+    });
+    return data;
+  }
+
+  async createPromo(params: P2PPromoCreateParams): Promise<any> {
+    if (!params.coin?.trim()) {
+      throw new QvaPayValidationError("La moneda es requerida", "coin");
+    }
+    if (!params.idempotency_key?.trim()) {
+      throw new QvaPayValidationError("La clave de idempotencia es requerida", "idempotency_key");
+    }
+    const { data } = await this.http.post<any>("/p2p/promo", params);
+    return data;
+  }
+
+  async pause(uuid: string, paused: boolean): Promise<{ message: string; p2p: string; pause: any }> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.post<{ message: string; p2p: string; pause: any }>(
+      `/p2p/${uuid}/pause`,
+      { paused },
+    );
+    return data;
+  }
+
+  async updateRate(
+    uuid: string,
+    params: { rating?: number; comment?: string | null; tags?: string[] | null; order?: string },
+  ): Promise<any> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.patch<any>(`/p2p/${uuid}/rate`, params);
+    return data;
+  }
+
+  async getAttachments(uuid: string, order?: string): Promise<P2PAttachmentsResult> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    const { data } = await this.http.get<P2PAttachmentsResult>(
+      `/p2p/${uuid}/attachments`,
+      { params: order ? { order } : undefined },
+    );
+    return data;
+  }
+
+  async uploadAttachment(
+    uuid: string,
+    file: File | Blob,
+    order?: string,
+  ): Promise<{ attachment: P2PAttachment }> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    if (!file) {
+      throw new QvaPayValidationError("El archivo es requerido", "file");
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await this.http.post<{ attachment: P2PAttachment }>(
+      `/p2p/${uuid}/attachments`,
+      formData,
+      {
+        params: order ? { order } : undefined,
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return data;
+  }
+
+  async getAttachment(uuid: string, attachmentId: string, order?: string): Promise<Blob> {
+    if (!uuid?.trim()) {
+      throw new QvaPayValidationError("El UUID es requerido", "uuid");
+    }
+    if (!attachmentId?.trim()) {
+      throw new QvaPayValidationError("El ID del archivo adjunto es requerido", "attachmentId");
+    }
+    const { data } = await this.http.get<Blob>(
+      `/p2p/${uuid}/attachments/${attachmentId}`,
+      {
+        params: order ? { order } : undefined,
+        responseType: "blob",
+      },
+    );
+    return data;
+  }
+
+  async getFeedSubscription(): Promise<P2PFeedSubscriptionResult> {
+    const { data } = await this.http.get<P2PFeedSubscriptionResult>("/v2/p2p/feed");
+    return data;
+  }
+
+  async getFeedDeliveries(): Promise<any> {
+    const { data } = await this.http.get<any>("/v2/p2p/feed/deliveries");
+    return data;
+  }
+
+  /**
+   * Helper SSE para stream del feed de mercado P2P.
+   * Devuelve la URL completa y cabeceras recomendadas sin añadir dependencias extras.
+   */
+  getStreamUrlAndHeaders(baseUrl = DEFAULT_BASE_URL) {
+    return {
+      url: `${baseUrl.replace(/\/$/, "")}/v2/p2p/stream`,
+      headers: {
+        Accept: "text/event-stream",
+      },
+    };
+  }
+
+  /**
+   * Helper SSE para stream del chat de un trato P2P.
+   */
+  getChatStreamUrlAndHeaders(uuid: string, order?: string, baseUrl = DEFAULT_BASE_URL) {
+    const query = order ? `?order=${encodeURIComponent(order)}` : "";
+    return {
+      url: `${baseUrl.replace(/\/$/, "")}/p2p/${uuid}/chat/stream${query}`,
+      headers: {
+        Accept: "text/event-stream",
+      },
+    };
   }
 }

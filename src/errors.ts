@@ -38,12 +38,14 @@ export class QvaPayAuthError extends QvaPayError {
 export class QvaPayApiError extends QvaPayError {
   readonly statusCode: number;
   readonly statusMessage: string | undefined;
+  readonly code: string | undefined;
 
-  constructor(message: string, statusCode: number, statusMessage?: string) {
+  constructor(message: string, statusCode: number, statusMessage?: string, code?: string) {
     super(message);
     this.name = "QvaPayApiError";
     this.statusCode = statusCode;
     this.statusMessage = statusMessage;
+    this.code = code;
   }
 }
 

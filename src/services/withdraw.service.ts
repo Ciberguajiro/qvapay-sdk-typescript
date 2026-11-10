@@ -1,12 +1,15 @@
 import type { AxiosInstance } from "axios";
 import { QvaPayValidationError } from "../errors";
 import type {
+  BankLookupResult,
+  CashZonesResult,
   CreateWithdrawParams,
   CreateWithdrawResult,
   RawCreateWithdrawResult,
   RawWithdraw,
   RawWithdrawListResult,
   Withdraw,
+  WithdrawListParams,
   WithdrawListResult,
 } from "../types";
 
@@ -42,12 +45,47 @@ function mapCreateWithdrawResult(raw: RawCreateWithdrawResult): CreateWithdrawRe
 export class WithdrawService {
   constructor(private readonly http: AxiosInstance) {}
 
-  async list(): Promise<WithdrawListResult> {
-    const { data } = await this.http.get<RawWithdrawListResult>("/withdraw");
+  async list(params: WithdrawListParams = {}): Promise<WithdrawListResult & { meta?: any }> {
+    const queryParams: Record<string, unknown> = {};
+    if (params.page !== undefined) queryParams.page = params.page;
+    if (params.take !== undefined) queryParams.take = params.take;
+    if (params.status) queryParams.status = params.status;
+    if (params.paymentMethod) queryParams.payment_method = params.paymentMethod;
+    if (params.includeTotal) queryParams.include_total = "true";
+
+    const { data } = await this.http.get<any>("/withdraw", {
+      params: queryParams,
+    });
     return {
       result: data.result,
-      data: data.data.map(mapWithdraw),
+      data: Array.isArray(data.data) ? data.data.map(mapWithdraw) : [],
+      ...(data.meta && { meta: data.meta }),
     };
+  }
+
+  async get(id: number | string): Promise<any> {
+    if (!id) {
+      throw new QvaPayValidationError("El ID es requerido", "id");
+    }
+    const { data } = await this.http.get<any>(`/withdraw/${id}`);
+    return data;
+  }
+
+  async bankLookup(routing: string): Promise<BankLookupResult> {
+    if (!routing?.trim()) {
+      throw new QvaPayValidationError("El número de ruta es requerido", "routing");
+    }
+    const { data } = await this.http.get<BankLookupResult>("/withdraw/bank-lookup", {
+      params: { routing },
+    });
+    return data;
+  }
+
+  async getCashZones(coin = "USDCASH"): Promise<CashZonesResult> {
+    const { data } = await this.http.get<CashZonesResult>("/withdraw/cash-zones", {
+      params: { coin },
+    });
+    return data;
   }
 
   async create(params: CreateWithdrawParams): Promise<CreateWithdrawResult> {
@@ -69,16 +107,23 @@ export class WithdrawService {
     if (!params.details || Object.keys(params.details).length === 0) {
       throw new QvaPayValidationError("Los detalles son requeridos", "details");
     }
+
+    const payload: Record<string, unknown> = {
+      amount: params.amount,
+      pay_method: params.payMethod,
+      details: params.details,
+    };
+
+    if (params.pin) payload.pin = params.pin;
+    if (params.note) payload.note = params.note;
+    if (params.webhook) payload.webhook = params.webhook;
+    if (params.idempotencyKey) payload.idempotency_key = params.idempotencyKey;
+    if (params.destLabel) payload.dest_label = params.destLabel;
+    if (params.compliance) payload.compliance = params.compliance;
+
     const { data } = await this.http.post<RawCreateWithdrawResult>(
       "/withdraw",
-      {
-        amount: params.amount,
-        pay_method: params.payMethod,
-        details: params.details,
-        ...(params.pin && { pin: params.pin }),
-        ...(params.note && { note: params.note }),
-        ...(params.webhook && { webhook: params.webhook }),
-      },
+      payload,
     );
     return mapCreateWithdrawResult(data);
   }
