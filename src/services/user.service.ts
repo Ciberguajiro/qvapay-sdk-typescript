@@ -164,12 +164,152 @@ export class UserService {
     if (!params.name?.trim()) {
       throw new QvaPayValidationError("El nombre es requerido", "name");
     }
-    if (!params.details?.trim()) {
+    if (!params.details) {
       throw new QvaPayValidationError("Los detalles son requeridos", "details");
     }
     const { data } = await this.userHttp.post<PaymentMethod>(
       "/user/payment-methods",
       params,
+    );
+    return data;
+  }
+
+  async updatePaymentMethod(
+    params: { id: string; name?: string; details?: Record<string, any> | string },
+  ): Promise<PaymentMethod> {
+    if (!params.id?.trim()) {
+      throw new QvaPayValidationError("El ID es requerido", "id");
+    }
+    const { data } = await this.userHttp.patch<PaymentMethod>(
+      "/user/payment-methods",
+      params,
+    );
+    return data;
+  }
+
+  async getReferralLinks(program = "enterprise"): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/user/referral-links", {
+      params: { program },
+    });
+    return data;
+  }
+
+  async createReferralLink(program = "enterprise"): Promise<any> {
+    const { data } = await this.userHttp.post<any>("/user/referral-links", {
+      program,
+    });
+    return data;
+  }
+
+  async getLightningAddress(page?: number): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/user/lightning-address", {
+      params: page ? { page } : undefined,
+    });
+    return data;
+  }
+
+  async updateLightningAddress(params: {
+    action: string;
+    name?: string;
+    receive_as?: string;
+  }): Promise<any> {
+    if (!params.action?.trim()) {
+      throw new QvaPayValidationError("La acción es requerida", "action");
+    }
+    const { data } = await this.userHttp.post<any>(
+      "/user/lightning-address",
+      params,
+    );
+    return data;
+  }
+
+  async decodeLightning(invoice: string): Promise<any> {
+    if (!invoice?.trim()) {
+      throw new QvaPayValidationError("La factura es requerida", "invoice");
+    }
+    const { data } = await this.userHttp.post<any>("/lightning/decode", {
+      invoice,
+    });
+    return data;
+  }
+
+  async getEmailChangeStatus(): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/user/update/email");
+    return data;
+  }
+
+  async updateEmail(params: Record<string, any>): Promise<any> {
+    const { data } = await this.userHttp.post<any>("/user/update/email", params);
+    return data;
+  }
+
+  async verifyTelegram(): Promise<{ verificationLink: string }> {
+    const { data } = await this.userHttp.get<{ verificationLink: string }>(
+      "/user/verify/telegram",
+    );
+    return data;
+  }
+
+  async requestTelegramLink(code: string): Promise<{ verificationLink: string }> {
+    if (!code?.trim()) {
+      throw new QvaPayValidationError("El código es requerido", "code");
+    }
+    const { data } = await this.userHttp.post<{ verificationLink: string }>(
+      "/user/verify/telegram",
+      { code },
+    );
+    return data;
+  }
+
+  async unlinkTelegram(code?: string): Promise<any> {
+    const { data } = await this.userHttp.put<any>(
+      "/user/verify/telegram",
+      code ? { code } : {},
+    );
+    return data;
+  }
+
+  async getCip(): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/user/cip");
+    return data;
+  }
+
+  async verifyCpf(cpf: string): Promise<any> {
+    if (!cpf?.trim()) {
+      throw new QvaPayValidationError("El CPF es requerido", "cpf");
+    }
+    const { data } = await this.userHttp.post<any>("/user/cip/verify-cpf", {
+      cpf,
+    });
+    return data;
+  }
+
+  async verifySsn(): Promise<any> {
+    const { data } = await this.userHttp.post<any>("/user/cip/verify-ssn");
+    return data;
+  }
+
+  async getDepositEligibility(channel?: string): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/user/deposit-eligibility", {
+      headers: channel ? { "x-qvapay-client-platform": channel } : undefined,
+    });
+    return data;
+  }
+
+  async getCompanyApplications(): Promise<any> {
+    const { data } = await this.userHttp.get<any>("/api/user/company");
+    return data;
+  }
+
+  async applyCompany(formData: FormData | Record<string, any>): Promise<any> {
+    const headers =
+      typeof FormData !== "undefined" && formData instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : undefined;
+    const { data } = await this.userHttp.post<any>(
+      "/api/user/company",
+      formData,
+      { headers },
     );
     return data;
   }

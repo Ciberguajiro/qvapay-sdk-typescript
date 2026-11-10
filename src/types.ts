@@ -96,20 +96,52 @@ export interface PaginatedResponse<T> {
 export interface LoginParams {
   email: string;
   password: string;
+  remember?: boolean;
+  twoFactorCode?: string;
 }
+
+export interface TwoFactorRequiredResult {
+  twoFactorRequired: true;
+  info: string;
+  notified: boolean;
+  hasOtp: boolean;
+}
+
+export interface LoginSuccessResult {
+  twoFactorRequired?: false;
+  token: string;
+  tokenType: string;
+  user: User;
+  securityWarning?: Record<string, unknown> | null;
+}
+
+export type LoginResult = LoginSuccessResult | TwoFactorRequiredResult;
+
+/**
+ * @deprecated Use LoginResult or LoginSuccessResult instead.
+ */
+export type AuthResponse = LoginSuccessResult;
 
 export interface RegisterParams {
   name: string;
+  lastname?: string;
   email: string;
   password: string;
-  passwordConfirmation: string;
+  passwordConfirmation?: string;
+  invite?: string;
+  terms?: boolean;
   username?: string;
   phone?: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface RegisterResult {
+  message: string;
+  user: {
+    uuid: string;
+    email: string;
+    name: string;
+    username: string;
+  };
 }
 
 export interface CreateInvoiceParams {
@@ -667,6 +699,38 @@ export interface AppLogsResult {
   };
 }
 
+export interface PayButton {
+  uuid: string;
+  name: string;
+  description: string;
+  amount: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PayButtonsResult {
+  data: PayButton[];
+  limit: number;
+}
+
+export interface CreatePayButtonParams {
+  name: string;
+  description?: string;
+  amount: number;
+}
+
+export interface UpdatePayButtonParams {
+  name?: string;
+  description?: string;
+  amount?: number;
+  active?: boolean;
+}
+
+export interface MiniAppConversationResult {
+  [key: string]: any;
+}
+
 // ─── P2P Extended ────────────────────────────────────────────────────────────
 
 export interface P2PListParams {
@@ -773,6 +837,10 @@ export interface P2PAverage {
   count: number;
   count_buy: number;
   count_sell: number;
+  median?: number;
+  median_buy?: number;
+  median_sell?: number;
+  window_hours?: number;
   updated_at: string;
 }
 
@@ -785,7 +853,99 @@ export interface RawP2PAverage {
     count: number;
     count_buy: number;
     count_sell: number;
+    median?: number;
+    median_buy?: number;
+    median_sell?: number;
+    window_hours?: number;
     updated_at: string;
+  };
+}
+
+export interface P2PCompletedPairsAverage {
+  average: number;
+  average_buy: number;
+  average_sell: number;
+  median_buy: number;
+  median_sell: number;
+  count: number;
+  window_hours: number;
+  offers: number[];
+}
+
+export interface P2PAttachment {
+  uuid: string;
+  kind: string;
+  mime: string;
+  size: number;
+  mine: boolean;
+  created_at: string;
+}
+
+export interface P2PAttachmentLimits {
+  max_bytes: number;
+  max_per_party: number;
+  remaining: number;
+  can_upload: boolean;
+  proof_replaces_tx_id: boolean;
+}
+
+export interface P2PAttachmentsResult {
+  attachments: P2PAttachment[];
+  limits: P2PAttachmentLimits;
+}
+
+export interface P2PPromoSlot {
+  coin: string;
+  offer_type: "buy" | "sell" | string;
+  state: "free" | "held" | "rotating" | string;
+  holder: { uuid: string; username: string } | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  leading_amount: number | null;
+  min_bid: number;
+  start_price: number;
+  period_days: number;
+}
+
+export interface P2PPromoResult {
+  data: {
+    coin: string;
+    enabled: boolean;
+    slots: P2PPromoSlot[];
+    rules: {
+      requirements: { min_completed: number; min_rating: number };
+      max_rate_gap_pct: number;
+      market_window_hours: number;
+      min_market_sample: number;
+    };
+    eligibility: { ok: boolean; missing?: Array<{ key: string; required: number; actual: number; label: string }> } | null;
+  };
+}
+
+export interface P2PPromoCreateParams {
+  coin: string;
+  offer_type: "buy" | "sell";
+  amount: number;
+  idempotency_key: string;
+}
+
+export interface P2PFeedSubscriptionResult {
+  data: {
+    active: boolean;
+    status: string;
+    expires_at: string;
+    auto_renew: boolean;
+    webhook_url: string;
+    webhook_events: string[];
+    stream_events: string[];
+    events: string[];
+  };
+  meta: {
+    price_usd: number;
+    period_days: number;
+    all_events: string[];
+    default_events: string[];
+    range_events: string[];
   };
 }
 
@@ -875,7 +1035,171 @@ export interface PaymentMethod {
 export interface CreatePaymentMethodParams {
   coin: string;
   name: string;
-  details: string;
+  details: Record<string, any> | string;
+}
+
+export interface UpdatePaymentMethodParams {
+  id: string;
+  name?: string;
+  details?: Record<string, any> | string;
+}
+
+export interface ReferralLink {
+  uuid: string;
+  code: string;
+  program: string;
+  max_uses: number;
+  uses: number;
+  expires_at: string;
+  revoked_at: string | null;
+  created_at: string;
+  state: "active" | "exhausted" | "expired" | "revoked" | string;
+  url: string;
+}
+
+export interface ReferralLinksResult {
+  data: ReferralLink;
+  bonus: { amount: number; threshold: number };
+}
+
+export interface LightningAddressLimits {
+  min_usd: number;
+  max_usd: number;
+  daily_usd: number;
+  used_24h_usd: number;
+  remaining_usd: number;
+}
+
+export interface LightningAddressPayment {
+  uuid: string;
+  address: string;
+  sats: number;
+  credit_usd: string;
+  credit_unit: string;
+  comment: string | null;
+  paid_at: string;
+  transaction_uuid: string;
+}
+
+export interface LightningAddressData {
+  visible: boolean;
+  available: boolean;
+  receiving: boolean;
+  reason_code: string | null;
+  message: string | null;
+  address: {
+    uuid: string;
+    name: string;
+    address: string;
+    lnurl: string;
+    qr: string;
+    status: string;
+    receive_as: string;
+    created_at: string;
+  } | null;
+  domain: string;
+  suggested_name: string | null;
+  renames_left: number;
+  limits: LightningAddressLimits;
+  receive: { as: string; effective: string; sats_available: boolean };
+  fees: { usd_pct: number; sats_pct: number };
+  satoshis: number;
+  payments: LightningAddressPayment[];
+}
+
+export interface LightningAddressResult {
+  data: LightningAddressData;
+}
+
+export interface LightningAddressUpdateParams {
+  action: "activate" | "rename" | "pause" | "resume" | "receive" | string;
+  name?: string;
+  receive_as?: "usd" | "sats" | string;
+}
+
+export interface LightningDecodeResult {
+  [key: string]: any;
+}
+
+export interface EmailChangeStatusResult {
+  enabled: boolean;
+  can_start: boolean;
+  problem: { code: string; message: string; until: string | null } | null;
+  methods: string[];
+  hold_hours: number;
+  pending: {
+    uuid: string;
+    new_email: string;
+    execute_after: string;
+    requested_at: string;
+    cancel_methods?: string[];
+  } | null;
+}
+
+export interface CipStatusResult {
+  us_person?: boolean;
+  ssn_itin_last4?: string | null;
+  addr_line1?: string;
+  addr_line2?: string;
+  addr_city?: string;
+  addr_state?: string;
+  addr_postal?: string;
+  addr_country?: string;
+  cip_status?: string;
+  has_document_hash?: boolean;
+  cpf_verification?: {
+    status: string;
+    verified_at: string | null;
+    cpf_last2: string | null;
+    attempts_left: number;
+    attempts_max: number;
+    can_start: boolean;
+    block_reason: string | null;
+    message: string | null;
+  };
+  ssn_verification?: {
+    status: string;
+    verified_at: string | null;
+    attempts_left: number;
+    attempts_max: number;
+    can_start: boolean;
+    block_reason: string | null;
+    message: string | null;
+  };
+}
+
+export interface DepositEligibilityResult {
+  result: string;
+  data: {
+    channel: string;
+    card: { eligible: boolean; tier: string | null; reason: string | null };
+    paypal: { eligible: boolean; tier: string | null; reason: string | null };
+    bank: { eligible: boolean; tier: string | null; reason: string | null };
+    ssn_tier?: {
+      enabled: boolean;
+      verified: boolean;
+      cap: number;
+      used_30d: number;
+      remaining: number;
+      window_days: number;
+      resets_at: string | null;
+    };
+  };
+}
+
+export interface CompanyApplication {
+  uuid: string;
+  company_name: string;
+  director_name: string;
+  email: string;
+  activity: string;
+  employee_count: string;
+  country: string;
+  entity_type: string | null;
+  status: string;
+  statutes_sent?: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─── Payment Auths ───────────────────────────────────────────────────────────
@@ -1052,6 +1376,104 @@ export interface PurchaseVoucherResult {
   message: string;
   transaction_uuid: string;
   buyedService_id: string;
+}
+
+export interface EsimCountry {
+  code: string;
+  offer_count: number;
+  price_from: number | null;
+  name: string;
+  flag: string;
+}
+
+export interface EsimOffer {
+  offer_id: string;
+  name: string;
+  sent_benefits: string;
+  region: string | null;
+  sub_type: string;
+  price_type: string;
+  price: number;
+}
+
+export interface EsimCatalogCountriesResult {
+  countries: EsimCountry[];
+}
+
+export interface EsimCatalogOffersResult {
+  country: { code: string; name: string; flag: string };
+  offers: EsimOffer[];
+}
+
+export interface EsimPurchaseParams {
+  offer_id: string;
+  country: string;
+}
+
+export interface EsimPurchaseResult {
+  message: string;
+  transaction_uuid: string;
+  buyedService_id: string;
+}
+
+export interface StorePurchaseItem {
+  id: string;
+  service_name: string;
+  service_logo: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StorePurchaseDetail {
+  id: string;
+  status: string;
+  amount: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  service: { name: string; logo: string | null } | null;
+  transaction: { uuid: string } | null;
+  service_data: Record<string, any>;
+}
+
+export interface PixEligibilityResult {
+  data: {
+    eligible: boolean;
+    reason: string | null;
+    gold_required: boolean;
+    surfaces: string[];
+    quote: { usd_per_brl: number; surcharge_pct: number; provider_pct: number };
+    cap: { cap: number; used: number; remaining: number; resets_at: string; window_days: number };
+    hold_hours: number;
+    instant_max_usd: number;
+  };
+}
+
+export interface PixCheckoutParams {
+  source: "cuba" | "topup" | "esim" | "voucher" | "market" | string;
+  [key: string]: any;
+}
+
+export interface PixCheckoutResult {
+  data: {
+    uuid: string;
+    surface: string;
+    stage: string;
+    description: string;
+    total_usd: number;
+    total_brl: number;
+    refunded_brl: number;
+    expires_at: string;
+    paid_at: string | null;
+    clearing_until: string | null;
+    qr: {
+      data: string;
+      image_url_png: string;
+      hosted_instructions_url: string;
+      expires_at: number;
+    };
+  };
 }
 
 // ─── Store Topups LATAM (legacy) ─────────────────────────────────────────────
@@ -1412,13 +1834,96 @@ export interface RawWithdrawListResult {
   data: RawWithdraw[];
 }
 
+export interface WithdrawComplianceAttestations {
+  notProhibitedOfficial: boolean;
+  notProhibitedPartyMember: boolean;
+  notRestrictedList: boolean;
+  lawfulPurpose: boolean;
+}
+
+export interface WithdrawCompliance {
+  purposeCode: string;
+  attestations: WithdrawComplianceAttestations;
+  purposeNote?: string;
+  language?: string;
+  specificLicense?: string;
+  generalLicense?: string;
+}
+
 export interface CreateWithdrawParams {
   amount: number;
   payMethod: string;
-  details: Record<string, string>;
+  details: Record<string, any>;
   pin?: string;
   note?: string;
   webhook?: string;
+  idempotencyKey?: string;
+  destLabel?: "OWN_ACCOUNT" | "THIRD_PARTY" | string;
+  compliance?: WithdrawCompliance;
+}
+
+export interface WithdrawListParams {
+  page?: number;
+  take?: number;
+  status?: "pending" | "processing" | "paid" | "cancelled" | string;
+  paymentMethod?: string;
+  includeTotal?: boolean;
+}
+
+export interface BankLookupBrand {
+  institution_id: string;
+  name: string;
+  url: string;
+  primary_color: string | null;
+  logo_url: string | null;
+}
+
+export interface BankLookupBank {
+  name: string;
+  city: string | null;
+  state: string | null;
+  url: string | null;
+  primary_color: string | null;
+  logo_url: string | null;
+  institution_id: string;
+  source: string;
+  brands?: BankLookupBrand[];
+}
+
+export interface BankLookupResult {
+  data: {
+    routing: string;
+    valid: boolean;
+    reason?: string;
+    bank: BankLookupBank | null;
+    degraded: boolean;
+    checked_at: string;
+  };
+}
+
+export interface CashZone {
+  id: string;
+  coin_tick: string;
+  province_code: string;
+  province_name: string;
+  municipality: string;
+  is_capital: boolean;
+  provider_pct: number;
+  margin_pct: number | null;
+  total_pct: number;
+  min_usd: number;
+  small_flat_usd: number | null;
+  eta_min_hours: number;
+  eta_max_hours: number;
+  home_delivery: boolean;
+  route: string;
+  enabled: boolean;
+}
+
+export interface CashZonesResult {
+  coin: string;
+  margin_pct: number;
+  zones: CashZone[];
 }
 
 export interface CreateWithdrawResult {
@@ -1813,10 +2318,45 @@ export interface RawTransactionDetailResult {
   data: RawTransactionDetail;
 }
 
+export interface TransactionCommentAuthor {
+  uuid: string;
+  username: string;
+  name: string;
+  lastname: string;
+  image: string;
+  vip: boolean;
+  golden_check: boolean;
+}
+
+export interface TransactionComment {
+  uuid: string;
+  body: string;
+  source: string;
+  created_at: string;
+  mine: boolean;
+  author: TransactionCommentAuthor;
+}
+
+export interface TransactionCommentsResult {
+  data: TransactionComment[];
+  max: number;
+  max_length: number;
+}
+
+export interface TransactionStatusResult {
+  uuid: string;
+  updated_at: string;
+  status: string;
+  withdraw_status: string | null;
+  service_status: string | null;
+  live: boolean;
+  fingerprint: string;
+}
+
 export interface TransactionListParams {
   take?: number;
   page?: number;
-  status?: "paid" | "pending" | "cancelled";
+  status?: "paid" | "pending" | "cancelled" | string;
   search?: string;
   query?: string;
   uuid?: string;

@@ -12,6 +12,12 @@ import { StoreService } from "./services/store.service";
 import { TransactionsService } from "./services/transactions.service";
 import { UserService } from "./services/user.service";
 import { WithdrawService } from "./services/withdraw.service";
+import { SupportService } from "./services/support.service";
+import { PushService } from "./services/push.service";
+import { SavingService } from "./services/saving.service";
+import { EnergyService } from "./services/energy.service";
+import { MarketService } from "./services/market.service";
+import { MiniAppsService } from "./services/miniapps.service";
 import type { QvaPayConfig } from "./types";
 import {
   createHttpClient,
@@ -35,6 +41,12 @@ export class QvaPaySDK {
   readonly user: UserService;
   readonly withdraw: WithdrawService;
   readonly paymentLinks: PaymentLinksService;
+  readonly support: SupportService;
+  readonly push: PushService;
+  readonly saving: SavingService;
+  readonly energy: EnergyService;
+  readonly market: MarketService;
+  readonly miniapps: MiniAppsService;
 
   constructor(config: QvaPayConfig) {
     if (!config.appId) {
@@ -55,16 +67,22 @@ export class QvaPaySDK {
     });
     this.app = new AppService(appHttp);
     this.apps = new AppsService(userHttp);
-    this.transactions = new TransactionsService(appHttp);
+    this.transactions = new TransactionsService(userHttp);
     this.invoices = new InvoicesService(appHttp);
-    this.me = new MeService(appHttp);
+    this.me = new MeService(userHttp);
     this.coins = new CoinsService(plainHttp);
-    this.p2p = new P2PService(appHttp);
+    this.p2p = new P2PService(userHttp);
     this.stocks = new StocksService(plainHttp);
     this.store = new StoreService(plainHttp);
     this.user = new UserService(userHttp);
     this.withdraw = new WithdrawService(userHttp);
     this.paymentLinks = new PaymentLinksService(userHttp);
+    this.support = new SupportService(userHttp);
+    this.push = new PushService(userHttp);
+    this.saving = new SavingService(userHttp);
+    this.energy = new EnergyService(userHttp);
+    this.market = new MarketService(userHttp);
+    this.miniapps = new MiniAppsService(userHttp);
   }
 
   get token(): string | null {

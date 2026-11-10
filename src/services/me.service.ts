@@ -21,19 +21,26 @@ function mapUser(raw: RawUser): User {
 /**
  * Servicio para gestionar la información del usuario autenticado.
  */
+/**
+ * Servicio para gestionar la información del usuario autenticado.
+ * @deprecated GET /me y POST /transfer no existen en la API oficial actual.
+ * Utiliza `qvapay.user.getProfile()` y `qvapay.transactions.transfer()` en su lugar.
+ */
 export class MeService {
   constructor(private readonly http: AxiosInstance) {}
 
   /**
    * Obtiene el perfil del usuario autenticado.
+   * @deprecated Delega en `GET /user`
    */
   async getProfile(): Promise<User> {
-    const { data } = await this.http.get<RawUser>("/me");
+    const { data } = await this.http.get<any>("/user");
     return mapUser(data);
   }
 
   /**
    * Realiza una transferencia de saldo a otro usuario.
+   * @deprecated Delega en `POST /transaction/transfer`
    */
   async transfer(params: TransferParams): Promise<TransferResult> {
     if (params.amount <= 0) {
@@ -45,7 +52,7 @@ export class MeService {
     if (!params.pin?.trim()) {
       throw new QvaPayValidationError("El PIN es requerido", "pin");
     }
-    const { data } = await this.http.post<TransferResult>("/transfer", {
+    const { data } = await this.http.post<TransferResult>("/transaction/transfer", {
       amount: params.amount.toFixed(2),
       to: params.to,
       pin: params.pin,

@@ -20,18 +20,34 @@ export class StocksService {
     return data.map(mapStock);
   }
 
-  async detail(
-    symbol: string,
-    params: { type?: "quote"; timeframe?: "1H" | "24H" | "1W" | "1M" | "1Y" } = {},
+  /**
+   * Obtiene el historial de precios o cotización extendida de una acción (GET /stocks/:tick).
+   * @param tick Símbolo bursátil de la acción (ej: AAPL, TSLA)
+   * @param params Opciones de consulta: timeframe ('1H' | '24H' | '1W' | '1M' | '1Y') y/o type ('quote')
+   */
+  async get(
+    tick: string,
+    params: { type?: "quote"; timeframe?: "1H" | "24H" | "1W" | "1M" | "1Y" | string } = {},
   ): Promise<StockDetail | StockPricePoint[]> {
-    if (!symbol?.trim()) {
-      throw new QvaPayValidationError("El símbolo es requerido", "symbol");
+    if (!tick?.trim()) {
+      throw new QvaPayValidationError("El símbolo es requerido", "tick");
     }
     const { data } = await this.http.get<StockDetail | StockPricePoint[]>(
-      `/stocks/${symbol}`,
+      `/stocks/${tick}`,
       { params },
     );
     return data;
+  }
+
+  /**
+   * Obtiene el detalle o historial de precios de una acción específica.
+   * Alias de `get()`.
+   */
+  async detail(
+    symbol: string,
+    params: { type?: "quote"; timeframe?: "1H" | "24H" | "1W" | "1M" | "1Y" | string } = {},
+  ): Promise<StockDetail | StockPricePoint[]> {
+    return this.get(symbol, params);
   }
 
   async buy(symbol: string, amount: number): Promise<StockTrade> {
